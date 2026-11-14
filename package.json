@@ -1,0 +1,33 @@
+{
+  "name": "petmate",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "setup:local": "node scripts/setup-local.mjs",
+    "test:admin": "node scripts/admin-smoke.mjs",
+    "test:browser": "node scripts/admin-browser.mjs",
+    "test:admin-controls": "node scripts/admin-controls.mjs",
+    "test:discovery": "node --experimental-strip-types scripts/discovery-unit.mjs",
+    "test:profile-discovery": "node scripts/profile-discovery-browser.mjs",
+    "test:favourites": "node scripts/favourites-browser.mjs",
+    "build:preview": "node scripts/build-netlify-preview.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "lucide-react": "^0.468.0",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

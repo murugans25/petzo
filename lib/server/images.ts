@@ -1,0 +1,5 @@
+﻿import {mkdir,writeFile,unlink} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import path from 'node:path';
+export async function saveImage(file:File){if(!file.size||file.size>5*1024*1024)throw Error('Each image must be under 5 MB.');const bytes=Buffer.from(await file.arrayBuffer());let ext='';if(file.type==='image/jpeg'&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255)ext='jpg';if(file.type==='image/png'&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))ext='png';if(file.type==='image/webp'&&bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP')ext='webp';if(!ext)throw Error('Use a valid JPEG, PNG or WebP file.');const folder=path.join(process.cwd(),'.data','uploads');await mkdir(folder,{recursive:true});const filename=`${randomUUID()}.${ext}`;await writeFile(path.join(folder,filename),bytes);return `/uploads/${filename}`}
+export async function removeImage(image:string){if(/^\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/.test(image))await unlink(path.join(process.cwd(),'.data',image.slice(1))).catch(()=>{})}

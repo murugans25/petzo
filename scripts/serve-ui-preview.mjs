@@ -1,0 +1,5 @@
+﻿import http from 'node:http';
+import {readFile,stat} from 'node:fs/promises';
+import path from 'node:path';
+const base=path.resolve('out');const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.txt':'text/plain; charset=utf-8','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.ico':'image/x-icon'};
+http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost');let file=path.resolve(base,'.'+decodeURIComponent(url.pathname));if(file!==base&&!file.startsWith(base+path.sep)){res.writeHead(403);res.end();return}let info;try{info=await stat(file)}catch{res.writeHead(404);res.end('Not found');return}if(info.isDirectory())file=path.join(file,'index.html');const bytes=await readFile(file);res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'no-store'});res.end(bytes)}catch{res.writeHead(404);res.end('Not found')}}).listen(4173,'127.0.0.1',()=>console.log('Static UI preview http://127.0.0.1:4173'));

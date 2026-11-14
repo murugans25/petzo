@@ -1,0 +1,2 @@
+﻿import {z} from 'zod';
+export const discoveryPreferencesSchema=z.object({distanceKm:z.number().int().min(1).max(100),anywhere:z.boolean(),petTypes:z.array(z.enum(['Dog','Cat'])).min(1).max(2),lookingFor:z.array(z.enum(['Playdate','Service','Breeding'])).min(1).max(3),originCity:z.string().trim().max(100)}).strict().refine(v=>v.anywhere||v.originCity.length>=2,'Choose your city or enable Find anywhere.');

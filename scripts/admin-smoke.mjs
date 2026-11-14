@@ -1,0 +1,36 @@
+﻿import assert from 'node:assert/strict';
+import {readFile,unlink} from 'node:fs/promises';
+const base='http://localhost:3000';const password=process.env.PETZO_TEST_PASSWORD;
+if(!password)throw Error('Set PETZO_TEST_PASSWORD for the local admin smoke test.');
+let cookie='',testPetId=null,uploaded=null,originalSettings=null,originalPlan=null;let checks=0;
+async function request(path,method='GET',data,options={}){const headers={...(data&&!(data instanceof FormData)?{'Content-Type':'application/json'}:{}),...(method!=='GET'?{Origin:base}:{}),...(cookie?{Cookie:cookie}:{}),...options.headers};const response=await fetch(base+path,{method,headers,body:data?(data instanceof FormData?data:JSON.stringify(data)):undefined});const body=await response.json().catch(()=>null);return {response,body}}
+function check(condition,label){assert.ok(condition,label);checks++;console.log('PASS '+label)}
+const catalog=async()=>(await request('/api/catalog')).body;
+try{
+ check((await request('/api/admin/pets')).response.status===401,'Unauthenticated admin reads are denied');
+ check((await request('/api/admin/pets','POST',{})).response.status===401,'Unauthenticated admin writes are denied');
+ check((await request('/api/admin/login','POST',{email:'admin@petzo.local',password:'incorrect-password'})).response.status===401,'Wrong admin password is denied');
+ const login=await request('/api/admin/login','POST',{email:'admin@petzo.local',password});check(login.response.status===200,'Admin login succeeds');const setCookie=login.response.headers.get('set-cookie')||'';check(setCookie.includes('HttpOnly')&&/SameSite=strict/i.test(setCookie),'Admin cookie is HttpOnly and SameSite strict');cookie=setCookie.split(';')[0];
+ const initial=await request('/api/admin/pets');check(initial.response.status===200&&initial.body.pets.length>=0,'Authenticated admin can load persisted pet profiles');
+ check((await request('/api/admin/settings','PUT',{}, {headers:{Origin:'https://untrusted.example'}})).response.status===403,'Foreign-origin mutations are denied');
+ check((await request('/api/admin/pets','POST',{name:'bad'})).response.status===400,'Incomplete pet payload is rejected');
+ const badForm=new FormData();badForm.append('image',new Blob(['not-a-jpeg'],{type:'image/jpeg'}),'bad.jpg');check((await request('/api/admin/upload','POST',badForm)).response.status===400,'Fake JPEG uploads are rejected');
+ const image=await readFile('public/petzo-logo.jpeg');const form=new FormData();form.append('image',new Blob([image],{type:'image/jpeg'}),'test.jpg');const upload=await request('/api/admin/upload','POST',form);check(upload.response.status===201&&upload.body.image.startsWith('/uploads/'),'Valid JPEG upload succeeds');uploaded=upload.body.image;const downloaded=await fetch(base+uploaded);check(downloaded.status===200&&(await downloaded.arrayBuffer()).byteLength===image.byteLength,'Uploaded image is publicly served with original bytes');
+ const data={name:'QA temporary pet',breed:'Golden Retriever',type:'Dog',gender:'Female',age:'2 years',location:'Chennai',image:uploaded,status:'pending',availability:true,description:'Temporary profile for admin-to-public integration testing.',health:'Not verified. This is an automated test profile.',vaccination:'Not verified',weight:20,temperament:'Friendly',ownerName:'QA private owner',ownerEmail:'qa-private@example.test',sample:true};
+ let created=await request('/api/admin/pets','POST',data);check(created.response.status===201,'Admin can create a pending pet');testPetId=created.body.pet.id;check(!(await catalog()).pets.some(p=>p.id===testPetId),'Pending pet is hidden from user catalog');
+ check((await request('/api/admin/pets','PUT',{...data,id:testPetId,status:'approved'})).response.status===200,'Admin can approve a pet');let publicData=await catalog();let visible=publicData.pets.find(p=>p.id===testPetId);check(visible?.name===data.name,'Approved pet appears in the user catalog');check(!JSON.stringify(publicData).includes(data.ownerEmail)&&!JSON.stringify(publicData).includes(data.ownerName),'Private owner name and email do not leak to public catalog');let html=await (await fetch(base)).text();check(html.includes(data.name),'Approved pet is rendered in server-rendered user homepage');
+ await request('/api/admin/pets','PUT',{...data,id:testPetId,status:'approved',name:'QA updated pet',location:'Mumbai'});visible=(await catalog()).pets.find(p=>p.id===testPetId);check(visible?.name==='QA updated pet'&&visible.location==='Mumbai','Name and city updates appear publicly');
+ await request('/api/admin/pets','PUT',{...data,id:testPetId,status:'approved',availability:false});check(!(await catalog()).pets.some(p=>p.id===testPetId),'Unavailable pet is removed from user catalog');
+ await request('/api/admin/pets','PUT',{...data,id:testPetId,status:'rejected'});check(!(await catalog()).pets.some(p=>p.id===testPetId),'Rejected pet stays hidden');
+ originalSettings=(await request('/api/admin/settings')).body.settings;const updated={...originalSettings,announcement:'QA announcement sync check',heroTitle:'QA updated hero title',contactEmail:'support-qa@example.test'};check((await request('/api/admin/settings','PUT',updated)).response.status===200,'Admin website settings save succeeds');publicData=await catalog();html=await (await fetch(base)).text();check(publicData.settings.heroTitle===updated.heroTitle&&html.includes(updated.heroTitle)&&html.includes(updated.announcement),'Hero and announcement updates are visible on the user homepage');
+ const plans=(await request('/api/admin/plans')).body.plans;originalPlan=plans.find(p=>p.premium)||plans[0];if(originalPlan){const {id,...fields}=originalPlan;await request('/api/admin/plans','PUT',{id,...fields,price:777,name:'QA Premium'});check((await catalog()).plans.some(p=>p.id===id&&p.price===777&&p.name==='QA Premium'),'Plan price and name updates reach user membership data');await request('/api/admin/plans','PUT',{id,...fields,active:false});check(!(await catalog()).plans.some(p=>p.id===id),'Inactive subscription plans are hidden publicly')}
+ const removed=await request('/api/admin/pets','DELETE',{id:testPetId});check(removed.response.status===200&&!(await catalog()).pets.some(p=>p.id===testPetId),'Deleting a pet removes it from the database and public catalog');testPetId=null;
+ const activity=(await request('/api/admin/settings')).body.logs;check(activity.some(l=>l.action.includes('Updated public website settings')),'Admin updates create activity log records');
+ if(originalSettings){await request('/api/admin/settings','PUT',originalSettings);originalSettings=null}if(originalPlan){await request('/api/admin/plans','PUT',originalPlan);originalPlan=null}
+ check((await request('/api/admin/logout','POST',{})).response.status===200,'Admin logout clears the session cookie');
+ check((await request('/api/admin/pets')).response.status===401,'Logged-out session is revoked on the server');cookie='';
+ console.log(`\n${checks} integration checks passed.`);
+}finally{
+ if(cookie){if(testPetId)await request('/api/admin/pets','DELETE',{id:testPetId});if(originalSettings)await request('/api/admin/settings','PUT',originalSettings);if(originalPlan)await request('/api/admin/plans','PUT',originalPlan)}
+ if(uploaded&&/^\/uploads\/[a-f0-9-]+\.jpg$/.test(uploaded))await unlink('.data'+uploaded).catch(()=>{});
+}

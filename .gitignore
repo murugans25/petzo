@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.data/
+public/uploads/
+.ui-preview-build-*/
+out/
+out-previous-*/
+petzo-netlify-ui.zip

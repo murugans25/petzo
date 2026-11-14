@@ -1,0 +1,7 @@
+﻿import {NextRequest,NextResponse} from 'next/server';
+import {guard} from '../../../../lib/server/admin-auth';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import path from 'node:path';
+export const runtime='nodejs';
+export async function POST(request:NextRequest){const blocked=await guard(request);if(blocked)return blocked;if(Number(request.headers.get('content-length')||0)>6*1024*1024)return NextResponse.json({error:'Image is too large.'},{status:413});try{const form=await request.formData();const file=form.get('image');if(!(file instanceof File)||file.size===0||file.size>5*1024*1024)return NextResponse.json({error:'Choose an image under 5 MB.'},{status:400});const bytes=Buffer.from(await file.arrayBuffer());let ext='';if(file.type==='image/jpeg'&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255)ext='jpg';if(file.type==='image/png'&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))ext='png';if(file.type==='image/webp'&&bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP')ext='webp';if(!ext)return NextResponse.json({error:'Use a valid JPEG, PNG or WebP image.'},{status:400});const dir=path.join(process.cwd(),'.data','uploads');await mkdir(dir,{recursive:true});const name=`${randomUUID()}.${ext}`;await writeFile(path.join(dir,name),bytes);return NextResponse.json({image:`/uploads/${name}`},{status:201})}catch{return NextResponse.json({error:'Upload failed.'},{status:500})}}

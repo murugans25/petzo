@@ -1,0 +1,1 @@
+export default function BrandLogo(){return <span className="petzo-brand"><span className="petzo-logo-frame"><img className="petzo-brand-image" src="/petzo-logo.png" alt="Petzo pet connections logo" width={96} height={96}/></span><span className="petzo-wordmark">Petzo<span className="petzo-tagline">FIND THEIR PERFECT MATCH</span></span></span>}

@@ -1,4 +1,4 @@
-export type AppCollection='pets'|'plans'|'settings'|'adoption_listings'|'adoption_requests'|'pet_market_listings'|'pet_market_enquiries'|'audit'|'discovery_workspaces'|'browser_favourites'|'admin_sessions'|'login_attempts';
+export type AppCollection='pets'|'plans'|'settings'|'adoption_listings'|'adoption_requests'|'pet_market_listings'|'pet_market_enquiries'|'subscription_requests'|'audit'|'discovery_workspaces'|'browser_favourites'|'admin_sessions'|'login_attempts';
 export type AppRecord<T=Record<string,unknown>>={row_id:number;collection:AppCollection;record_key:string|null;data:T;owner_token_hash:string|null;listing_id:number|null;workspace_id:string|null;created_at:string;updated_at:string};
 export type RecordOptions={recordKey?:string|null;ownerTokenHash?:string|null;listingId?:number|null;workspaceId?:string|null;createdAt?:string;updatedAt?:string};
 function base(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.SUPABASE_SECRET_KEY;if(!url||!key)throw new Error('Supabase server configuration is missing. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY.');return {url:url.replace(/\/$/, '')+'/rest/v1/petzo_app_records',key}}

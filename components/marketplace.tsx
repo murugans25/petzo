@@ -19,6 +19,7 @@ import PetMarketplace from './pet-marketplace';
 import SubscriptionCheckout from './subscription-checkout';
 import PremiumOwnerContact from './premium-owner-contact';
 import '../app/subscription.css';
+import '../app/mobile-layout.css';
 export default function Marketplace({initialCatalog,initialView='home',ownerToken=''}:{initialCatalog:Catalog;initialView?:string;ownerToken?:string}){
 const router=useRouter();const pathname=usePathname();
 const {ids:saved,loaded:favouritesLoaded,busy:favouritesBusy,error:favouritesError,notice:favouritesNotice,toggle,clear:clearFavourites}=useFavourites();

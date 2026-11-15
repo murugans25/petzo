@@ -33,3 +33,6 @@ footer{border-color:#e6d8df;background:#f8f2f4;max-width:none;padding-left:max(4
 .adoption-plans-note{display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:950px;margin:30px auto 0;padding:20px 23px;border:1px solid #dfe8d7;border-radius:11px;background:#f5f8f1}.adoption-plans-note b{color:#4b6742;font-size:14px}.adoption-plans-note p{margin:6px 0 0;color:#75846f;font-size:12px;line-height:1.7}.adoption-plans-note button{display:flex;align-items:center;gap:8px;white-space:nowrap}@media(max-width:600px){.adoption-plans-note{align-items:flex-start;flex-direction:column;padding:17px}.adoption-plans-note button{width:100%;justify-content:center}}
 
 .plans-payment-note{margin:20px auto 0;max-width:760px;font-size:13px;color:#71666d;line-height:1.7}.plan.premium{box-shadow:0 16px 40px #5e184015}.plans>p{max-width:800px;margin:14px auto;line-height:1.8}
+
+
+.admin-access{width:42px;height:42px;display:grid;place-items:center;border:1px solid #e8d6df;border-radius:50%;color:#641a46;background:#fffdf9;transition:background .2s,transform .2s}.admin-access:hover{background:#f7edf2;transform:translateY(-1px)}.footer-admin-link{margin-left:14px;font-size:10px;color:#775269;text-decoration:underline;text-underline-offset:3px}.footer-admin-link:hover{color:#641a46}

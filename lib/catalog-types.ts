@@ -5,4 +5,4 @@ export type ManagedPet=Pet&{images?:string[];photoTitles?:Record<string,string>;
 export type PublicPet=Omit<ManagedPet,'ownerName'|'ownerEmail'|'status'|'updatedAt'|'discoveryPreferences'>;
 export type SiteSettings={announcement:string;heroTitle:string;heroAccent:string;heroDescription:string;contactEmail:string};
 export type Plan={id:number;name:string;price:number;months:number;description:string;features:string[];active:boolean;premium:boolean};
-export type Catalog={pets:PublicPet[];settings:SiteSettings;plans:Plan[];updatedAt:string};
+export type Catalog={pets:PublicPet[];settings:SiteSettings;plans:Plan[];updatedAt:string;preview?:boolean};

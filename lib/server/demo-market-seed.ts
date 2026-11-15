@@ -16,6 +16,9 @@ const market:Omit<PetMarketListing,'id'>[]=[
  {petName:'Milo',type:'Dog',breed:'Golden Retriever',age:'10 months',gender:'Male',location:'Hyderabad',price:22000,currency:'INR',description:'A lively, affectionate young dog. Meet the seller and review original records in person.',vaccination:'Owner-reported vaccinations; check dates and veterinary documents.',health:'Sample listing only. Arrange an independent veterinary examination.',vetClinic:'',photos:['/pets/photo-1552053831-71594a27632d.jpg'],photoTitles:['Milo in the garden'],sellerKind:'individual',sellerName:'Sample seller',sellerEmail:'milo@example.test',sellerPhone:'9000000006',establishmentName:'',registrationNumber:'',registrationDocument:null,vetDocument:null,sellerVerified:true,status:'approved',createdAt,updatedAt:createdAt,sample:true}
 ];
 
+export function previewAdoptionListings(){return adoption.map((listing,index)=>({...listing,id:index+1,sample:true}))}
+export function previewPetMarketListings(){return market.map((listing,index)=>({...listing,id:index+1,sample:true}))}
+
 export function seedDemoMarketplaces(database:DatabaseSync){
  database.exec('CREATE TABLE IF NOT EXISTS sample_seed_flags(id TEXT PRIMARY KEY)');
  const mark=database.prepare('INSERT OR IGNORE INTO sample_seed_flags(id) VALUES(?)');

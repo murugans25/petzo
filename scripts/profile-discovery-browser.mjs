@@ -1,4 +1,4 @@
-﻿import {chromium,expect} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import {unlink} from 'node:fs/promises';
 const base='http://localhost:3000';const browser=await chromium.launch({channel:'msedge',headless:true});const context=await browser.newContext({viewport:{width:1280,height:1000}});const page=await context.newPage();const adminContext=await browser.newContext();let id;let images=[];let checks=0;const name='Discovery QA '+Date.now();const pass=label=>{checks++;console.log('PASS '+label)};
 const admin=async(path,method='GET',data)=>{const r=await adminContext.request.fetch(base+'/api/admin/'+path,{method,data,headers:method==='GET'?{}:{Origin:base}});if(!r.ok())throw Error(await r.text());return r.json()};
@@ -16,4 +16,4 @@ try{
  const isolated=await browser.newContext();const isolatedState=await (await isolated.request.get(base+'/api/discovery')).json();if(Object.keys(isolatedState.decisions).length||isolatedState.preferences.originCity)throw Error('Browser workspaces leaked');await isolated.close();pass('Preferences and choices are isolated per browser');
  for(const width of [320,390,768]){await page.setViewportSize({width,height:844});if(!await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))throw Error('Discovery horizontal overflow at '+width)}await page.setViewportSize({width:390,height:844});await page.locator('.discovery-explorer').screenshot({path:'.data/discovery-mobile.png'});pass('Discovery fits 320px, 390px and 768px viewports');
  console.log(`${checks} profile and discovery browser checks passed.`);
-}finally{try{if(id)await admin('pets','DELETE',{id});for(const path of images)if(/^\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/.test(path))await unlink('.data'+path).catch(()=>{});await admin('logout','POST',{})}catch(e){console.error('Cleanup: '+e.message)}await browser.close()}
+}finally{try{if(id)await admin('pets','DELETE',{id});for(const path of images)if(/^\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/.test(path))await unlink('public'+path).catch(()=>{});await admin('logout','POST',{})}catch(e){console.error('Cleanup: '+e.message)}await browser.close()}

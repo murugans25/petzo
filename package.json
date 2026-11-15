@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "setup:local": "node scripts/setup-local.mjs",
+    "migrate:supabase": "node --env-file=.env.local scripts/migrate-sqlite-to-supabase.mjs",
     "test:admin": "node scripts/admin-smoke.mjs",
     "test:browser": "node scripts/admin-browser.mjs",
     "test:admin-controls": "node scripts/admin-controls.mjs",

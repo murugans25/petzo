@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import {readFile,unlink} from 'node:fs/promises';
 const base='http://localhost:3000';const password=process.env.PETZO_TEST_PASSWORD;
 if(!password)throw Error('Set PETZO_TEST_PASSWORD for the local admin smoke test.');
@@ -15,7 +15,7 @@ try{
  check((await request('/api/admin/settings','PUT',{}, {headers:{Origin:'https://untrusted.example'}})).response.status===403,'Foreign-origin mutations are denied');
  check((await request('/api/admin/pets','POST',{name:'bad'})).response.status===400,'Incomplete pet payload is rejected');
  const badForm=new FormData();badForm.append('image',new Blob(['not-a-jpeg'],{type:'image/jpeg'}),'bad.jpg');check((await request('/api/admin/upload','POST',badForm)).response.status===400,'Fake JPEG uploads are rejected');
- const image=await readFile('public/pets/photo-1552053831-71594a27632d.jpg');const form=new FormData();form.append('image',new Blob([image],{type:'image/jpeg'}),'test.jpg');const upload=await request('/api/admin/upload','POST',form);check(upload.response.status===201&&upload.body.image.startsWith('/uploads/'),'Valid JPEG upload succeeds');uploaded=upload.body.image;const downloaded=await fetch(base+uploaded);check(downloaded.status===200&&(await downloaded.arrayBuffer()).byteLength===image.byteLength,'Uploaded image is publicly served with original bytes');
+ const image=await readFile('public/pets/photo-1552053831-71594a27632d.jpg');const form=new FormData();form.append('image',new Blob([image],{type:'image/jpeg'}),'test.jpg');const upload=await request('/api/admin/upload','POST',form);check(upload.response.status===201&&new URL(upload.body.image).pathname.includes('/storage/v1/object/public/petzo-media/'),'Valid JPEG upload succeeds to Supabase Storage');uploaded=upload.body.image;const downloaded=await fetch(uploaded);check(downloaded.status===200&&(await downloaded.arrayBuffer()).byteLength===image.byteLength,'Uploaded image is publicly served from persistent storage');
  const data={name:'QA temporary pet',breed:'Golden Retriever',type:'Dog',gender:'Female',age:'2 years',location:'Chennai',image:uploaded,status:'pending',availability:true,description:'Temporary profile for admin-to-public integration testing.',health:'Not verified. This is an automated test profile.',vaccination:'Not verified',weight:20,temperament:'Friendly',ownerName:'QA private owner',ownerEmail:'qa-private@example.test',sample:true};
  let created=await request('/api/admin/pets','POST',data);check(created.response.status===201,'Admin can create a pending pet');testPetId=created.body.pet.id;check(!(await catalog()).pets.some(p=>p.id===testPetId),'Pending pet is hidden from user catalog');
  check((await request('/api/admin/pets','PUT',{...data,id:testPetId,status:'approved'})).response.status===200,'Admin can approve a pet');let publicData=await catalog();let visible=publicData.pets.find(p=>p.id===testPetId);check(visible?.name===data.name,'Approved pet appears in the user catalog');check(!JSON.stringify(publicData).includes(data.ownerEmail)&&!JSON.stringify(publicData).includes(data.ownerName),'Private owner name and email do not leak to public catalog');let html=await (await fetch(base)).text();check(html.includes(data.name),'Approved pet is rendered in server-rendered user homepage');
@@ -32,5 +32,5 @@ try{
  console.log(`\n${checks} integration checks passed.`);
 }finally{
  if(cookie){if(testPetId)await request('/api/admin/pets','DELETE',{id:testPetId});if(originalSettings)await request('/api/admin/settings','PUT',originalSettings);if(originalPlan)await request('/api/admin/plans','PUT',originalPlan)}
- if(uploaded&&/^\/uploads\/[a-f0-9-]+\.jpg$/.test(uploaded))await unlink('.data'+uploaded).catch(()=>{});
+ if(uploaded&&cookie)await request('/api/admin/upload','DELETE',{image:uploaded}).catch(()=>{});
 }

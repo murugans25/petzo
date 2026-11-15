@@ -1,0 +1,8 @@
+import 'server-only';
+
+function config(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.SUPABASE_SECRET_KEY;if(!url||!key)throw new Error('Supabase Storage is not configured.');return {url:url.replace(/\/$/,''),key}}
+function headers(key:string,extra:Record<string,string>={}){return {apikey:key,Authorization:`Bearer ${key}`,...extra}}
+export function publicMediaUrl(path:string){const {url}=config();return `${url}/storage/v1/object/public/petzo-media/${path.split('/').map(encodeURIComponent).join('/')}`}
+export async function uploadObject(bucket:string,path:string,bytes:Buffer,contentType:string){const {url,key}=config();const body=new ArrayBuffer(bytes.byteLength);new Uint8Array(body).set(bytes);const response=await fetch(`${url}/storage/v1/object/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`,{method:'POST',headers:headers(key,{'Content-Type':contentType,'Cache-Control':'max-age=31536000','x-upsert':'false'}),body});if(!response.ok)throw new Error(`Supabase Storage upload failed (${response.status}).`)}
+export async function deleteObject(bucket:string,path:string){const {url,key}=config();const response=await fetch(`${url}/storage/v1/object/${bucket}`,{method:'DELETE',headers:headers(key,{'Content-Type':'application/json'}),body:JSON.stringify({prefixes:[path]})});if(!response.ok&&response.status!==404)throw new Error(`Supabase Storage delete failed (${response.status}).`)}
+export async function readObject(bucket:string,path:string){const {url,key}=config();const response=await fetch(`${url}/storage/v1/object/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`,{headers:headers(key),cache:'no-store'});if(!response.ok)return null;return Buffer.from(await response.arrayBuffer())}

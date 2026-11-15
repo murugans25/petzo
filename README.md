@@ -1,18 +1,24 @@
-# Petzo local admin and catalog
+# Petzo marketplace
 
 ## Start
 
-Requires Node.js 24 (uses built-in `node:sqlite`). Run `npm.cmd install`, `npm.cmd run setup:local`, then `npm.cmd run dev`. For the production build on this computer: `npm.cmd run build` followed by `npm.cmd run start`.
+Requires Node.js 24. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and server-only `SUPABASE_SECRET_KEY` in `.env.local`, then run `npm.cmd install` and `npm.cmd run dev`. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, and `ADMIN_SESSION_SECRET` for the server-configured admin account. Add the same variables to Vercel Project Settings → Environment Variables (Production, Preview, and Development as needed) and redeploy after changes. Never expose `SUPABASE_SECRET_KEY` with a `NEXT_PUBLIC_` prefix. For the production build: `npm.cmd run build` followed by `npm.cmd run start`.
 
 - User website: http://localhost:3000
 - Admin workspace: http://localhost:3000/admin
 
-`setup:local` creates a random admin password and prints it once. It stores only a salted scrypt password hash and session secret in ignored `.env.local`. Re-running setup preserves the existing credentials. Do not commit this file. This is a local environment, not a publicly deployed service.
+Never commit `.env.local`. The secret key must stay server-side and must never use a `NEXT_PUBLIC_` variable.
+
+## Supabase database
+
+Apply `supabase/migrations/202611150003_petzo_server_records.sql` once in the Supabase SQL Editor. The table has RLS enabled and denies `anon` and `authenticated`; only the server secret key can read/write these application records. The app uses direct PostgREST requests so current `sb_secret_` keys work with the configured Supabase project.
+
+To import the existing local data, run `npm.cmd run migrate:supabase`. It reads `.data/petzo.sqlite` without changing it and inserts missing records by collection and record key, so rerunning does not overwrite newer Supabase edits or create duplicates. It also copies any referenced local uploads into Supabase Storage. This migrates pet profiles, plans, site settings, adoption and marketplace listings/requests, audit entries, discovery workspaces, and favourites.
 
 ## Working flows
 
 - Admin sign-in/logout, expiring signed HttpOnly sessions, server-side session revocation, login throttling and same-origin write checks.
-- Persistent SQLite pet CRUD, approval/rejection/draft and availability controls.
+- Supabase-backed pet CRUD, approval/rejection/draft and availability controls.
 - Admin image upload with JPEG/PNG/WebP signature and 5 MB checks.
 - Public catalog returns only approved, available profiles and active plans. Owner names/emails remain admin-only.
 - User homepage, discovery, profile details, hero, membership prices and matching suggestions read the same database.
@@ -26,7 +32,7 @@ Requires Node.js 24 (uses built-in `node:sqlite`). Run `npm.cmd install`, `npm.c
 - Website announcement, hero text, support email and subscription-plan configuration.
 - Admin activity log with real persisted actions. No fictional revenue/user/payment counts.
 
-Data lives in ignored `.data/petzo.sqlite`; photos in `.data/uploads`. Keep the whole `.data` directory when restarting. Back it up with the server stopped so SQLite and uploaded files stay together. Seed profiles are inserted only on the initial database creation. They are marked as samples; health information is not independently verified.
+The one-time migration source is `.data/petzo.sqlite`. Bundled pet imagery is in `public/pets`. New pet photos upload directly from the browser to the public `petzo-media` Supabase Storage bucket using short-lived signed upload URLs; image bytes do not pass through a Vercel Function. Seller registration/veterinary documents upload to the private `petzo-private-documents` bucket and are served only through the authenticated admin endpoint. This keeps uploads persistent on Vercel and allows a future mobile app to reuse the same storage. Both buckets have upload size and MIME restrictions. Seed profiles are marked as samples; health information is not independently verified.
 
 ## Test
 
@@ -39,13 +45,13 @@ The tests create temporary records and restore settings/prices in cleanup. Activ
 
 ## Local-only limitations
 
-Customer login/password recovery, production email notifications, authenticated seller/owner accounts, live Razorpay checkout and verified subscriptions, mating requests/private chat, and Supabase/R2 integrations are not connected. Adoption and seller review work in the local preview through private access links; owners/sellers follow up directly using the contact details provided. Free/Premium plan prices are editable development configuration; payments and premium activation never pretend to succeed. Favourites persist in SQLite for the current browser workspace and are available at /favourites.
+Customer login/password recovery, production email notifications, authenticated seller/owner accounts, live Razorpay checkout and verified subscriptions, and mating requests/private chat are not connected. Adoption and seller review work through private access links; owners/sellers follow up directly using the contact details provided. Free/Premium plan prices are editable configuration; payments and premium activation never pretend to succeed. Favourites persist in Supabase for the current browser workspace and are available at /favourites.
 
-The local submission flow is anonymous, restricted to local host requests and capped per local instance. It is for development, not a substitute for authenticated production pet submission. The admin mode uses one server-configured account and is designed for localhost HTTP. The cookie is not configured for public HTTPS hosting. Do not deploy this mode as a production marketplace.
+The submission flow is anonymous and rate-limited. It is for development, not a substitute for verified customer accounts. Admin mode uses one server-configured account; its signed session is HTTP-only and secure on production HTTPS.
 
 ## Production path
 
-Move storage to Supabase PostgreSQL and R2, implement Supabase Auth with server-verified admin roles and RLS, require authenticated owner submissions, and use a properly configured HTTPS session cookie and deployment allowlist. Configure Razorpay signature-verified orders/webhooks before enabling memberships and messaging. Add email, reporting/blocking, retention policies and operational monitoring. `.env.example` lists integration placeholders; none are connected just by filling a key.
+Before public production, implement Supabase Auth with server-verified admin roles, require authenticated owner submissions, and configure a deployment allowlist. Configure Razorpay signature-verified orders/webhooks before enabling memberships and messaging. Add email, reporting/blocking, retention policies and operational monitoring. Cloudflare R2 remains a future migration option if you later need a separate media CDN.
 
 Existing UI notes and older readiness audits describe earlier revisions. `ADMIN-VERIFICATION.md` records the current admin implementation and checks.
 
@@ -53,7 +59,7 @@ Existing UI notes and older readiness audits describe earlier revisions. `ADMIN-
 
 Pet rows now include Edit, Approve/Reject, Hide/Show, Set draft and Delete. Editing an existing profile uses an explicit Update profile action. Delete opens a named confirmation dialog, and cancelling leaves the record unchanged. Plans support edit, immediate hide/show and confirmed deletion. Visibility changes update only the intended fields; stale pet editors receive a conflict response instead of overwriting a newer change. Mutations are authenticated and logged.
 
-Run `npm.cmd run test:admin-controls` with `PETZO_TEST_PASSWORD` set to test these controls through Microsoft Edge, including the matching changes on the user website. Deleted records are permanently removed; Hide preserves them for later reuse. Uploaded image files are retained locally rather than deleted automatically with a record.
+Run `npm.cmd run test:admin-controls` with `PETZO_TEST_PASSWORD` set to test these controls through Microsoft Edge, including the matching changes on the user website. Deleted records are permanently removed; Hide preserves them for later reuse. Uploaded images live in Supabase Storage; admin image deletes remove those storage objects.
 
 ## Pet profile and discovery revision — 9 November 2026
 
@@ -61,7 +67,7 @@ Pet intake now supports photo titles, remove/set-profile-photo controls, age in 
 
 Discovery defaults to a large photo-card layout with info, previous/next photos, tap-to-advance, left/right swipe, Accept/Decline, Undo, grid view and a persistent accepted-profiles view. Accept records interest only; it does not send requests, trigger payments or unlock chat.
 
-Discovery preferences and choices are stored in the local SQLite database, isolated by an HttpOnly browser-workspace cookie. They are not customer authentication or ownership verification. Profile discovery preferences are excluded from the public catalog. Distances are explicitly approximate city-centre calculations for supported cities; unknown locations are not assigned a fabricated distance and are excluded when radius filtering is active. Find anywhere includes all locations.
+Discovery preferences and choices are stored in Supabase, isolated by an HttpOnly browser-workspace cookie. They are not customer authentication or ownership verification. Profile discovery preferences are excluded from the public catalog. Distances are explicitly approximate city-centre calculations for supported cities; unknown locations are not assigned a fabricated distance and are excluded when radius filtering is active. Find anywhere includes all locations.
 
 Tests: `npm.cmd run test:discovery` (date/age/distance/purpose helpers), `npm.cmd run test:profile-discovery` (Edge end-to-end form, approval, carousel, preferences, swipe, persistence and mobile checks). Browser tests require `PETZO_TEST_PASSWORD` for the admin approval step.
 

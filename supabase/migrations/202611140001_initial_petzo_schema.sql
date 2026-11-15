@@ -265,7 +265,7 @@ grant usage, select on sequence public.audit_log_id_seq to authenticated;
 
 insert into public.membership_plans (name, price, duration_months, description, features, active, premium)
 values
-  ('Free', 0, 1, 'Explore the community.', array['Browse approved pet profiles', 'Save favourite pet profiles', 'Free adoption listings and requests'], true, false),
-  ('Premium', 499, 1, 'Optional membership for additional matching features.', array['Additional matching features (when enabled)'], true, true)
+  ('Free', 0, 1, 'Browse all public listings and use Petzo adoption at no cost.', array['Browse all approved pet profiles', 'Save favourite profiles', 'Browse pets and send adoption requests for free'], true, false),
+  ('Premium', 399, 1, '₹399 per month for a featured pet listing and owner connections. Payment setup is required before subscriptions can be activated.', array['Feature your pet listing', 'Contact pet owners and send mating requests', 'Keep browsing every public profile for free'], true, true)
 on conflict (name) do nothing;
 

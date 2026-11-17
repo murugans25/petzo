@@ -1,4 +1,4 @@
-const dogBreeds=['Indian Pariah','Labrador Retriever','Golden Retriever','German Shepherd','Beagle','Pomeranian','Shih Tzu','Pug','Dachshund','Rottweiler','Boxer','Cocker Spaniel','Siberian Husky','Border Collie','French Bulldog','Great Dane','Doberman','Rajapalayam','Mudhol Hound','Indie'];
+const dogBreeds=['Rajapalayam','Chippiparai','Kanni','Kombai','Labrador Retriever','Golden Retriever','German Shepherd','Indian Pariah (Indie)','Beagle','Shih Tzu','Pomeranian','Pug','Rottweiler','Doberman','Boxer','Cocker Spaniel','Dachshund','Siberian Husky','French Bulldog','Great Dane','Border Collie','Lhasa Apso','Indian Spitz','Chihuahua','Toy Poodle','Maltese','Chow Chow','Dalmatian','Mudhol Hound'];
 const catBreeds=['Domestic Shorthair','Persian','Siamese','Maine Coon','Bengal','Ragdoll','British Shorthair','Himalayan','Russian Blue','Sphynx','Abyssinian','Scottish Fold','Bombay','Turkish Angora','Indie'];
 export function breedsFor(type:string){return type==='Dog'?dogBreeds:type==='Cat'?catBreeds:Array.from(new Set([...dogBreeds,...catBreeds])).sort((a,b)=>a.localeCompare(b))}
 

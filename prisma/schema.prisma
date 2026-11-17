@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PetzoAppRecord {
+  rowId          BigInt   @id @default(autoincrement()) @map("row_id")
+  collection     String
+  recordKey      String?  @map("record_key")
+  data           Json     @default("{}") @db.JsonB
+  ownerTokenHash String?  @map("owner_token_hash")
+  listingId      BigInt?  @map("listing_id")
+  workspaceId    String?  @map("workspace_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([collection, recordKey])
+  @@index([collection, rowId(sort: Desc)], map: "petzo_app_records_collection_idx")
+  @@index([collection, ownerTokenHash], map: "petzo_app_records_owner_token_idx")
+  @@index([collection, listingId, rowId(sort: Desc)], map: "petzo_app_records_listing_idx")
+  @@index([collection, workspaceId, rowId(sort: Desc)], map: "petzo_app_records_workspace_idx")
+  @@map("petzo_app_records")
+}

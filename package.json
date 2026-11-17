@@ -5,6 +5,11 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:supabase-to-neon": "node scripts/migrate-supabase-to-neon.mjs --apply",
     "start": "next start --hostname 0.0.0.0",
     "setup:local": "node scripts/setup-local.mjs",
     "migrate:supabase": "node --env-file=.env.local scripts/migrate-sqlite-to-supabase.mjs",
@@ -17,6 +22,9 @@
     "build:preview": "node scripts/build-netlify-preview.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "@prisma/adapter-neon": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "@supabase/supabase-js": "^2.49.0",
     "lucide-react": "^0.468.0",
     "next": "^16.0.0",
@@ -29,6 +37,12 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "dotenv": "^18.0.10",
+    "prisma": "^7.10.1",
     "typescript": "^5.7.0"
+  },
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true
   }
 }

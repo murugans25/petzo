@@ -13,7 +13,7 @@ async function encryptSellerDocument(file:File,encodedKey:string){
 
 export async function uploadToPetzoStorage(file:File,kind:PetzoUploadKind):Promise<string|UploadedPrivateDocument>{
  const uploadLabel=kind==='seller-document'?'seller document':'photo';
- const r2BucketLabel='media bucket';
+ const r2BucketLabel=kind==='seller-document'?'private document bucket':'media bucket';
  const signature=bytesToBase64(new Uint8Array(await file.slice(0,16).arrayBuffer()));
  let ticketResponse:Response;
  try{ticketResponse=await fetch('/api/storage/upload-ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,name:file.name,type:file.type,size:file.size,signature})})}catch{throw Error('Could not reach Petzo’s upload service. Check your connection and try again.')}
@@ -28,7 +28,7 @@ export async function uploadToPetzoStorage(file:File,kind:PetzoUploadKind):Promi
  const uploadHeaders:Record<string,string>=ticket.provider==='r2'?{'Content-Type':uploadBody.type}:{apikey:publicKey,'Content-Type':file.type,'x-upsert':'false'};
  if(ticket.provider!=='r2'&&!publicKey.startsWith('sb_publishable_'))uploadHeaders.Authorization=`Bearer ${publicKey}`;
  let uploaded:Response;
- try{uploaded=await fetch(ticket.uploadUrl,{method:'PUT',mode:'cors',credentials:'omit',headers:uploadHeaders,body:uploadBody})}catch{throw Error(ticket.provider==='r2'?`Could not upload the ${uploadLabel} to Cloudflare R2. If this persists, check that the ${r2BucketLabel} allows PUT requests from this site with the Content-Type header.`:`Could not reach secure storage to upload the ${uploadLabel}. Check your connection and try again.`)}
+ try{uploaded=await fetch(ticket.uploadUrl,{method:'PUT',mode:'cors',credentials:'omit',headers:uploadHeaders,body:uploadBody})}catch{if(ticket.provider==='r2'){const bucket=kind==='seller-document'?'petzo-private-documents':'petzo-media';const origin=typeof window!=='undefined'?window.location.origin:'this website';throw Error(`Cloudflare R2 blocked this upload from ${origin}. Add that exact origin and PUT + Content-Type to the ${bucket} CORS policy.`)}throw Error(`Could not reach secure storage to upload the ${uploadLabel}. Check your connection and try again.`)}
  if(!uploaded.ok){let detail='';if(ticket.provider==='r2'){try{const body=await uploaded.text();detail=body.match(/<Code>([^<]+)<\/Code>/i)?.[1]||''}catch{}}throw Error(ticket.provider==='r2'?`Cloudflare R2 rejected the ${uploadLabel} upload (HTTP ${uploaded.status}${detail?`, ${detail}`:''}). Check the name and write permissions for the ${r2BucketLabel}.`:`Could not save the ${uploadLabel} to secure storage (HTTP ${uploaded.status}). Please try again.`)}
  return kind==='seller-document'?{key:ticket.key,name:file.name.replace(/[\\/\u0000-\u001f]/g,'_').slice(0,150)||'seller-document',type:file.type,size:file.size}:ticket.publicUrl;
 }

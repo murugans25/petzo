@@ -17,7 +17,7 @@ type DashboardData = {
   enquiries: Enquiry[];
 };
 
-export default function BreederDashboard({ close, addMatchPet, addSaleListing, findMatches }: { close?: () => void; addMatchPet: () => void; addSaleListing: () => void; findMatches: (pet: MatchingPet) => void }) {
+export default function BreederDashboard({ embedded = false, close, addMatchPet, addSaleListing, findMatches }: { embedded?: boolean; close?: () => void; addMatchPet: () => void; addSaleListing: () => void; findMatches: (pet: MatchingPet) => void }) {
   const [token, setToken] = useState('');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +46,13 @@ export default function BreederDashboard({ close, addMatchPet, addSaleListing, f
     else if (planToken) { setToken(planToken); void loadDashboard(planToken); }
     else setLoading(false);
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (!token) return;
+    const refresh = () => void loadDashboard(token);
+    window.addEventListener('petzo-discovery-updated', refresh);
+    return () => window.removeEventListener('petzo-discovery-updated', refresh);
+  }, [loadDashboard, token]);
 
   async function register(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError(''); setNotice('');
@@ -81,9 +88,10 @@ export default function BreederDashboard({ close, addMatchPet, addSaleListing, f
     if (saved) void loadDashboard(saved);
   }
 
-  if (loading) return <div className="breeder-overlay"><section className="breeder-dashboard"><p className="breeder-loading"><RefreshCw className="spin"/> Loading your breeder space…</p></section></div>;
+  const containerClass = embedded ? 'breeder-page' : 'breeder-overlay';
+  if (loading) return <div className={containerClass}><section className="breeder-dashboard"><p className="breeder-loading"><RefreshCw className="spin"/> Loading your breeder space…</p></section></div>;
 
-  return <div className="breeder-overlay">
+  return <div className={containerClass}>
     <section className="breeder-dashboard" role="region" aria-label="Petzo breeder dashboard">
       <div className="breeder-dashboard-top"><a className="breeder-brand" href="/" aria-label="Petzo home"><PawPrint/><span>Petzo <small>BREEDER STUDIO</small></span></a>{close&&<button className="breeder-close" onClick={close} aria-label="Close breeder dashboard"><X/></button>}</div>
       {data ? <>
@@ -91,15 +99,15 @@ export default function BreederDashboard({ close, addMatchPet, addSaleListing, f
         {error&&<p className="breeder-alert" role="alert">{error}</p>}{notice&&<p className="breeder-notice" role="status"><Check size={16}/>{notice}</p>}
         <div className="breeder-stats"><article><PawPrint/><span>Breeding pets</span><strong>{data.matchingProfiles.length}</strong></article><article><Store/><span>Sale listings</span><strong>{data.listings.length}</strong></article><article><CircleHelp/><span>Buyer enquiries</span><strong>{data.enquiries.length}</strong></article></div>
         <section className="breeder-plan-card"><div><span className="breeder-kicker">BREEDER SELLER PLAN</span><h2>{data.plan.active?'Your 15-profile plan is active':'List pets for sale when you are ready'}</h2><p>{data.plan.active?`${data.plan.profilesUsed} of ${data.plan.profileLimit} profile slots used${data.plan.expiresAt?` · valid until ${new Date(data.plan.expiresAt).toLocaleDateString('en-IN')}`:''}`:'₹399 · up to 15 pet sale profiles · 1 month. Breeding profiles and basic match browsing remain free.'}</p></div><button className="breeder-primary" onClick={data.plan.active?addSaleListing:()=>setShowCheckout(true)}>{data.plan.active?'Add sale listing':'Get breeder plan'}<ArrowRight size={17}/></button></section>
-        <div className="breeder-section-heading"><div><span className="breeder-kicker">MATCH WITH CARE</span><h2>Your breeding profiles</h2><p>Add pets for free. Open matches for a pet to see compatible listings.</p></div><button className="breeder-outline" onClick={addMatchPet}><Plus size={16}/>Add a pet profile</button></div>
-        {data.matchingProfiles.length ? <div className="breeder-pet-grid">{data.matchingProfiles.map(pet=><article className="breeder-pet-card" key={pet.id}><img src={pet.image.startsWith('/')?pet.image:pet.image} alt={`${pet.name}, ${pet.breed}`}/><div><span className="breeder-pet-type">{pet.type} · {pet.gender}</span><h3>{pet.name}</h3><p>{pet.breed} · {pet.age}</p><small><MapPin size={13}/>{pet.location}</small><button className="breeder-match-button" disabled={!pet.availability} onClick={()=>findMatches(pet)}><Search size={15}/>{pet.availability?'Find matches for this pet':'Mark this pet available to find matches'}</button></div></article>)}</div> : <div className="breeder-empty"><Dog/><h3>Your first breeding profile starts here</h3><p>Add your pet details and photos. Then choose that pet to see matches.</p><button className="breeder-primary" onClick={addMatchPet}>Add a pet profile <ArrowRight size={16}/></button></div>}
+        <div className="breeder-section-heading"><div><span className="breeder-kicker">MATCH WITH CARE</span><h2>Your breeding profiles</h2><p>Add pets for free. Open matches for a pet to see compatible listings.</p></div><button className="breeder-outline" onClick={addMatchPet}><Plus size={16}/>Register a breed</button></div>
+        {data.matchingProfiles.length ? <div className="breeder-pet-grid">{data.matchingProfiles.map(pet=><article className="breeder-pet-card" key={pet.id}><img src={pet.image.startsWith('/')?pet.image:pet.image} alt={`${pet.name}, ${pet.breed}`}/><div><span className="breeder-pet-type">{pet.type} · {pet.gender}</span><h3>{pet.name}</h3><p>{pet.breed} · {pet.age}</p><small><MapPin size={13}/>{pet.location}</small><button className="breeder-match-button" disabled={!pet.availability} onClick={()=>findMatches(pet)}><Search size={15}/>{pet.availability?'Find matches for this pet':'Mark this pet available to find matches'}</button></div></article>)}</div> : <div className="breeder-empty"><Dog/><h3>Your first breeding profile starts here</h3><p>Add your pet details and photos. Then choose that pet to see matches.</p><button className="breeder-primary" onClick={addMatchPet}>Register a breed <ArrowRight size={16}/></button></div>}
         <div className="breeder-section-heading breeder-listing-heading"><div><span className="breeder-kicker">YOUR PET MARKET</span><h2>Sale listings</h2></div></div>
         {data.listings.length ? <div className="breeder-listing-list">{data.listings.map(listing=><article key={listing.id}><img src={listing.photos?.[0]||'/pets/photo-1552053831-71594a27632d.jpg'} alt={listing.petName}/><div><h3>{listing.petName}</h3><p>{listing.breed} · {listing.age} · {listing.gender} · ₹{listing.price.toLocaleString('en-IN')}</p><small>{listing.location} · {listing.status}</small></div></article>)}</div> : <div className="breeder-empty breeder-empty-compact"><Store/><p>Your paid sale listings will appear here.</p></div>}
         <div className="breeder-section-heading breeder-listing-heading"><div><span className="breeder-kicker">PRIVATE TO YOUR ACCOUNT</span><h2>Buyer enquiries</h2></div></div>
         {data.enquiries.length ? <div className="breeder-enquiry-list">{data.enquiries.map(item=><article key={item.id}><div><span className="breeder-pet-type">FOR {item.petName}</span><h3>{item.buyerName}</h3><p>{item.message}</p><a href={`tel:${item.buyerPhone}`}>{item.buyerPhone}</a> · <a href={`mailto:${item.buyerEmail}`}>{item.buyerEmail}</a></div><div className="breeder-enquiry-actions"><span>{item.status}</span>{item.status==='pending'&&<><button disabled={saving} onClick={()=>void updateEnquiry(item,'declined')}>Decline</button><button disabled={saving} onClick={()=>void updateEnquiry(item,'accepted')}>Accept</button></>}</div></article>)}</div> : <div className="breeder-empty breeder-empty-compact"><ShieldCheck/><p>New buyer enquiries will appear here.</p></div>}
         <p className="breeder-disclaimer"><ShieldCheck size={15}/>Breeder details and registration are not independently verified by Petzo. For mating contacts, the separate ₹399 monthly Pairing plan applies.</p>
       </> : <>
-        <div className="breeder-register-hero"><span className="breeder-kicker">JOIN PETZO AS A BREEDER</span><h1>A thoughtful home for your breeding business.</h1><p>Create your separate breeder space. Registration and breeding profile browsing are free; a paid seller plan is only needed to publish sale listings.</p></div>
+        <div className="breeder-register-hero"><span className="breeder-kicker">JOIN PETZO AS A BREEDER</span><h1>Register a breed</h1><p>Create a free breeder dashboard to register your dogs or cats for matching. You can also manage sale listings and buyer enquiries here.</p></div>
         {error&&<p className="breeder-alert" role="alert">{error}</p>}
         <form className="breeder-register-form" onSubmit={register}><h2>Breeder details</h2><div className="breeder-form-grid"><label>Your name<input name="name" required minLength={2} autoComplete="name"/></label><label>Business / kennel name<input name="businessName" required minLength={2}/></label><label>Email<input type="email" name="email" required autoComplete="email"/></label><label>Phone<input type="tel" name="phone" required minLength={7} autoComplete="tel"/></label><label>City<input name="city" required minLength={2} autoComplete="address-level2"/></label><label>Breeder registration reference <small>Optional. Petzo has not verified it.</small><input name="registrationNumber"/></label></div><button className="breeder-primary" disabled={saving}>{saving?'Creating your breeder space…':'Create breeder dashboard'}<ArrowRight size={17}/></button><p>Your private dashboard access is saved in this browser. Use a trusted device and do not share it.</p></form>
         <div className="breeder-free-callout"><Check size={17}/>Free breeder registration · Free breeding profiles · ₹399 seller plan only for up to 15 sale listings</div>

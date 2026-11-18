@@ -2,6 +2,7 @@ import {NextRequest,NextResponse} from 'next/server';
 import {randomUUID} from 'node:crypto';
 import {guard,localEnabled,validOrigin} from '../../../../lib/server/admin-auth';
 import {isR2Enabled,r2Bucket,r2PresignedUrl,r2PublicMediaUrl} from '../../../../lib/server/r2';
+import {sellerDocumentEncryptionKey} from '../../../../lib/server/seller-document-encryption';
 
 export const runtime='nodejs';export const dynamic='force-dynamic';
 const extensions:Record<string,string>={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf'};
@@ -16,10 +17,11 @@ export async function POST(request:NextRequest){
   if(!extension||!Number.isSafeInteger(size)||size<1||size>max||(!document&&type==='application/pdf'))return NextResponse.json({error:document?'Choose a PDF, JPEG, PNG or WebP document under 10 MB.':'Choose a JPEG, PNG or WebP image under 5 MB.'},{status:400});
   const bytes=Buffer.from(body.signature||'','base64');if(!signatureMatches(type,bytes))return NextResponse.json({error:'The selected file does not match its file type.'},{status:400});
   if(isR2Enabled()){
-   const bucket=r2Bucket(document);const key=document?`${randomUUID()}.${extension}`:`pets/${randomUUID()}.${extension}`;
-   const uploadUrl=await r2PresignedUrl('PUT',bucket,key,300,type);
+   const key=document?`${randomUUID()}.enc`:`pets/${randomUUID()}.${extension}`;
+   const uploadUrl=await r2PresignedUrl('PUT',r2Bucket(),key,300,document?'application/octet-stream':type);
    const publicUrl=document?undefined:r2PublicMediaUrl(key);
-   return NextResponse.json({provider:'r2',uploadUrl,publicUrl,key:document?key:undefined},{headers:{'Cache-Control':'no-store'}});
+   const encryptionKey=document?sellerDocumentEncryptionKey(key).toString('base64'):undefined;
+   return NextResponse.json({provider:'r2',uploadUrl,publicUrl,key:document?key:undefined,encryptionKey},{headers:{'Cache-Control':'no-store'}});
   }
   const base=process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,'');const secret=process.env.SUPABASE_SECRET_KEY;if(!base||!secret)return NextResponse.json({error:'Supabase Storage is not configured.'},{status:503});
   const bucket=document?'petzo-private-documents':'petzo-media';const key=document?`${randomUUID()}.${extension}`:`pets/${randomUUID()}.${extension}`;const encoded=key.split('/').map(encodeURIComponent).join('/');

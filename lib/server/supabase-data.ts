@@ -1,6 +1,6 @@
 import { prismaClient } from './prisma';
 
-export type AppCollection='pets'|'plans'|'settings'|'adoption_listings'|'adoption_requests'|'pet_market_listings'|'pet_market_enquiries'|'subscription_requests'|'marketplace_payments'|'razorpay_payments'|'purchase_entitlements'|'razorpay_webhook_events'|'audit'|'discovery_workspaces'|'browser_favourites'|'admin_sessions'|'login_attempts';
+export type AppCollection='pets'|'plans'|'settings'|'adoption_listings'|'adoption_requests'|'pet_market_listings'|'pet_market_enquiries'|'subscription_requests'|'marketplace_payments'|'razorpay_payments'|'purchase_entitlements'|'razorpay_webhook_events'|'breeder_profiles'|'audit'|'discovery_workspaces'|'browser_favourites'|'admin_sessions'|'login_attempts';
 export type AppRecord<T=Record<string,unknown>>={row_id:number;collection:AppCollection;record_key:string|null;data:T;owner_token_hash:string|null;listing_id:number|null;workspace_id:string|null;created_at:string;updated_at:string};
 export type RecordOptions={recordKey?:string|null;ownerTokenHash?:string|null;listingId?:number|null;workspaceId?:string|null;createdAt?:string;updatedAt?:string};
 

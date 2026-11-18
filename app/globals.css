@@ -28,3 +28,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-bottom:1
 @media(max-width:360px){header{padding-left:10px;padding-right:10px}.header-actions{gap:3px}.header-actions .saved-button,.header-actions>.small,.mobile-toggle{width:40px;min-width:40px;height:42px}.header-actions .saved-button{height:40px}.header-actions>.small{font-size:0;padding:0}.mobile-bottom-nav button{font-size:9px}}
 
 .intake-validation-notice{margin:12px 0 0;padding:12px 14px;border:1px solid #e6b0a5;border-radius:10px;background:#fff3f0;color:#8e352d;font-size:13px;line-height:1.5}.intake-validation-notice[hidden]{display:none}
+
+/* Registration step actions remain visible while the desktop form scrolls. */
+.intake-modal{max-height:min(92dvh,calc(100dvh - 24px));min-height:0}.intake-main{min-width:0;min-height:0;overscroll-behavior:contain}.intake-bottom{position:sticky;bottom:0;z-index:8;margin-top:22px;padding:14px 0 max(10px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#ffffffed 0%,#fff 28%);backdrop-filter:blur(8px)}.intake-bottom>.button,.intake-bottom>.text-button{min-height:48px}.intake-fields>*{min-width:0}
+@media(max-width:640px){.intake-modal{max-height:calc(100dvh - max(20px,env(safe-area-inset-top) + 10px))}.intake-bottom{gap:10px}.intake-bottom>.button{min-width:140px;justify-content:center}}

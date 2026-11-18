@@ -17,7 +17,7 @@ export async function POST(request:NextRequest){
   const bytes=Buffer.from(body.signature||'','base64');if(!signatureMatches(type,bytes))return NextResponse.json({error:'The selected file does not match its file type.'},{status:400});
   if(isR2Enabled()){
    const bucket=r2Bucket(document);const key=document?`${randomUUID()}.${extension}`:`pets/${randomUUID()}.${extension}`;
-   const uploadUrl=r2PresignedUrl('PUT',bucket,key);
+   const uploadUrl=await r2PresignedUrl('PUT',bucket,key,300,type);
    const publicUrl=document?undefined:r2PublicMediaUrl(key);
    return NextResponse.json({provider:'r2',uploadUrl,publicUrl,key:document?key:undefined},{headers:{'Cache-Control':'no-store'}});
   }

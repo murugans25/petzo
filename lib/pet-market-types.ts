@@ -1,4 +1,4 @@
-export type PetMarketStatus='pending'|'approved'|'rejected'|'sold'|'paused';
+export type PetMarketStatus='pending'|'pending_payment'|'approved'|'rejected'|'sold'|'paused';
 export type PetMarketEnquiryStatus='pending'|'accepted'|'declined';
 export type PrivateMarketDocument={key:string;name:string;type:string;size:number};
 export type PetMarketListing={

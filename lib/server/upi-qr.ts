@@ -2,7 +2,7 @@ const VERSION=4;
 const SIZE=VERSION*4+17;
 const DATA_CODEWORDS=80;
 const ECC_CODEWORDS=20;
-const UPI_URI='upi://pay?pa=vaishnavi21596-5@okicici&pn=Vaishnavi%20R&am=399&cu=INR';
+const UPI_URI=(amount=399)=>`upi://pay?pa=vaishnavi21596-5@okicici&pn=Vaishnavi%20R&am=${amount}&cu=INR`;
 
 function gfMultiply(x:number,y:number){let z=0;for(let i=0;i<8;i++){if(y&1)z^=x;const high=x&0x80;x=(x<<1)&0xff;if(high)x^=0x1d;y>>>=1}return z}
 function errorCorrection(data:number[],degree:number){let generator=[1];let root=1;for(let i=0;i<degree;i++){const next=Array(generator.length+1).fill(0);for(let j=0;j<generator.length;j++){next[j]^=generator[j];next[j+1]^=gfMultiply(generator[j],root)}generator=next;root=gfMultiply(root,2)}const message=[...data,...Array(degree).fill(0)];for(let i=0;i<data.length;i++){const factor=message[i];for(let j=0;j<generator.length;j++)message[i+j]^=gfMultiply(generator[j],factor)}return message.slice(data.length)}
@@ -31,8 +31,9 @@ function qrMatrix(text:string){
  return matrix;
 }
 
-export function makeUpiQrSvg(){
- const matrix=qrMatrix(UPI_URI),quiet=4,viewSize=SIZE+quiet*2;
+export function makeUpiQrSvg(amount=399){
+ if(![99,399].includes(amount))throw new Error('Unsupported UPI payment amount.');
+ const matrix=qrMatrix(UPI_URI(amount)),quiet=4,viewSize=SIZE+quiet*2;
  const path:string[]=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(matrix[y][x])path.push(`M${x+quiet},${y+quiet}h1v1h-1z`);
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewSize} ${viewSize}" role="img" aria-label="UPI QR: pay ₹399 to Vaishnavi R"><rect width="100%" height="100%" fill="#fff"/><path d="${path.join('')}" fill="#111" shape-rendering="crispEdges"/></svg>`;
 }

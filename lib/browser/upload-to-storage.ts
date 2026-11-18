@@ -8,8 +8,8 @@ export async function uploadToPetzoStorage(file:File,kind:PetzoUploadKind):Promi
  const ticketResponse=await fetch('/api/storage/upload-ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,name:file.name,type:file.type,size:file.size,signature})});
  const ticket=await ticketResponse.json();if(!ticketResponse.ok)throw Error(ticket.error||'Could not prepare a secure upload.');
  const publicKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||'';
- const uploadHeaders:Record<string,string>={apikey:publicKey,'Content-Type':file.type,'x-upsert':'false'};
- if(!publicKey.startsWith('sb_publishable_'))uploadHeaders.Authorization=`Bearer ${publicKey}`;
+ const uploadHeaders:Record<string,string>=ticket.provider==='r2'?{'Content-Type':file.type}:{apikey:publicKey,'Content-Type':file.type,'x-upsert':'false'};
+ if(ticket.provider!=='r2'&&!publicKey.startsWith('sb_publishable_'))uploadHeaders.Authorization=`Bearer ${publicKey}`;
  const uploaded=await fetch(ticket.uploadUrl,{method:'PUT',headers:uploadHeaders,body:file});
  if(!uploaded.ok)throw Error('Could not save the file to secure storage. Please try again.');
  return kind==='seller-document'?{key:ticket.key,name:file.name.replace(/[\\/\u0000-\u001f]/g,'_').slice(0,150)||'seller-document',type:file.type,size:file.size}:ticket.publicUrl;

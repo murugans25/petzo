@@ -15,7 +15,7 @@ export async function POST(request:NextRequest){
   const ownerTokenHash=hashPaymentToken(body.accessToken);
   const entitlements=await listRecords<Record<string,unknown>>('purchase_entitlements',{ownerTokenHash,ascending:false});
   const entitlement=entitlements.find(row=>row.data.kind==='buyer_contacts'&&row.data.status==='active'&&typeof row.data.expiresAt==='string'&&Date.parse(String(row.data.expiresAt))>Date.now()&&Number(row.data.contactsUsed||0)<Number(row.data.contactLimit||8));
-  if(!entitlement)return NextResponse.json({error:'An active Buyer plan with contacts remaining is required. Choose the ₹299 plan for up to 8 seller contacts.'},{status:403});
+  if(!entitlement)return NextResponse.json({error:'An active Buyer plan with contacts remaining is required. Choose the ₹199 plan for up to 8 seller contacts.'},{status:403});
   const listing=(await getRecordById<PetMarketListing>('pet_market_listings',Number(body.listingId)))?.data;
   if(!listing||listing.status!=='approved')return NextResponse.json({error:'This pet listing is not available.'},{status:404});
   const unlocked=Array.isArray(entitlement.data.unlockedListingIds)?entitlement.data.unlockedListingIds.map(Number):[];

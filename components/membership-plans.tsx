@@ -3,7 +3,7 @@ import {ArrowRight,Check} from 'lucide-react';
 type PlanId='pairing_monthly'|'buyer_contacts'|'seller_individual'|'seller_breeder';
 const paidPlans:{id:PlanId;name:string;price:number;eyebrow:string;description:string;features:string[]}[]=[
  {id:'pairing_monthly',name:'Pairing',price:399,eyebrow:'FOR MATING CONNECTIONS',description:'Browse matches for free. Pay only when you want to contact an owner.',features:['1 month access','Contact pet owners for mating','Browse profiles free']},
- {id:'buyer_contacts',name:'Buyer contacts',price:299,eyebrow:'FOR PET BUYERS',description:'Shortlist pets and reach out to sellers directly.',features:['Up to 8 seller contacts','1 month validity','Browse listings free']},
+ {id:'buyer_contacts',name:'Buyer contacts',price:199,eyebrow:'FOR PET BUYERS',description:'Shortlist pets and reach out to sellers directly.',features:['Up to 8 seller contacts','1 month validity','Browse listings free']},
  {id:'seller_individual',name:'Individual seller',price:199,eyebrow:'FOR INDIVIDUAL OWNERS',description:'List your pets for sale with one simple monthly plan.',features:['Up to 8 pet profiles','1 month validity','At least 3 photos per pet']},
  {id:'seller_breeder',name:'Breeder',price:399,eyebrow:'FOR BREEDERS',description:'Manage a larger set of pet listings for one month.',features:['Up to 15 pet profiles','1 month validity','At least 3 photos per pet']},
 ];

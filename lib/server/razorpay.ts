@@ -2,7 +2,7 @@ import {createHmac,timingSafeEqual} from 'node:crypto';
 
 export const PETZO_PLANS={
  pairing_monthly:{name:'Pairing · one month',amount:399,kind:'pairing',durationDays:30},
- buyer_contacts:{name:'Buyer · 8 seller contacts',amount:299,kind:'buyer_contacts',durationDays:30,contactLimit:8},
+ buyer_contacts:{name:'Buyer · 8 seller contacts',amount:199,kind:'buyer_contacts',durationDays:30,contactLimit:8},
  seller_individual:{name:'Individual seller · 8 pet profiles',amount:199,kind:'seller_profiles',durationDays:30,profileLimit:8},
  seller_breeder:{name:'Breeder · 15 pet profiles',amount:399,kind:'seller_profiles',durationDays:30,profileLimit:15},
 } as const;

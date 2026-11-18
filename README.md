@@ -26,7 +26,7 @@ To import the existing local data, run `npm.cmd run migrate:supabase`. It reads 
 - User four-step profile form can download a private draft or submit photos/details to the local admin review queue. User submissions are always pending. Approval makes them public.
 - Pet adoption has its own free browse/list/request flow. Owners and rescue organisations submit pet details, vaccination and health information, reason for adoption, photos and private contact details; admin approval is required before public browsing.
 - Adoption requests collect applicant contact details, household, pet experience and a care plan. A random private owner access link lets the listing owner review and accept/decline requests; the admin workspace can moderate listings and requests, verify rescue organisations, and mark a pet adopted. Adoption never checks membership or payment status.
-- Marketplace has separate type, breed, age, gender and location filters; public pet listings include price, photos, vaccination and health information, and a private seller enquiry. Seller identity/contacts and optional registration/veterinary documents are private; admin verifies the seller and approves the listing before it is visible.
+- Marketplace has separate type, breed, age, gender and location filters; public pet listings include price, photos, vaccination and health information, and a private seller enquiry. Seller identity and optional registration/veterinary documents remain private; paid seller plans publish listings immediately, without independent seller verification by Petzo.
 - Seller enquiries are reviewed through a private seller access link or by admin. Admin can verify/unverify sellers, approve/reject/sell/delete listings and accept/decline enquiries. The app does not process checkout, transfer money, or represent that an enquiry completed a sale.
 - Private seller documents are signature-checked, stored outside public uploads and downloadable only through an authenticated admin route.
 - Website announcement, hero text, support email and subscription-plan configuration.
@@ -45,13 +45,13 @@ The tests create temporary records and restore settings/prices in cleanup. Activ
 
 ## Local-only limitations
 
-Customer login/password recovery, production email notifications, authenticated seller/owner accounts, live Razorpay checkout and verified subscriptions, and mating requests/private chat are not connected. Adoption and seller review work through private access links; owners/sellers follow up directly using the contact details provided. Free/Premium plan prices are editable configuration; payments and premium activation never pretend to succeed. Favourites persist in Supabase for the current browser workspace and are available at /favourites.
+Customer account registration with phone OTP, production email notifications, authenticated seller/owner accounts, and mating requests/private chat are not connected. Adoption and seller review work through private access links; owners/sellers follow up directly using the contact details provided. Free/Premium plan prices are editable configuration; payments and premium activation never pretend to succeed. Favourites persist in Supabase for the current browser workspace and are available at /favourites.
 
 The submission flow is anonymous and rate-limited. It is for development, not a substitute for verified customer accounts. Admin mode uses one server-configured account; its signed session is HTTP-only and secure on production HTTPS.
 
 ## Production path
 
-Before public production, implement Supabase Auth with server-verified admin roles, require authenticated owner submissions, and configure a deployment allowlist. Configure Razorpay signature-verified orders/webhooks before enabling memberships and messaging. Add email, reporting/blocking, retention policies and operational monitoring. Cloudflare R2 remains a future migration option if you later need a separate media CDN.
+Before public production, implement Supabase Auth with server-verified admin roles, require authenticated owner submissions, and configure a deployment allowlist. Configure Supabase Auth with a verified customer identity before enabling multi-device plan ownership and messaging. Add email, reporting/blocking, retention policies and operational monitoring. Cloudflare R2 remains a future migration option if you later need a separate media CDN.
 
 Existing UI notes and older readiness audits describe earlier revisions. `ADMIN-VERIFICATION.md` records the current admin implementation and checks.
 
@@ -81,3 +81,9 @@ Run `npm.cmd run test:favourites` for the 11 favourite UI/API scenarios.
 ## Client UI preview upload
 
 Run `npm.cmd run build:preview` to create an independent static `out` folder for Netlify manual upload. It uses a sanitized public catalog snapshot and browser-local preview interactions, including sample adoption and Marketplace cards with demo listing/request/review steps. No database, environment secrets or live admin routes are exported; preview activity does not publish real pets, verify sellers, store uploaded documents or contact anyone. The normal local app remains server-backed. See NETLIFY-UPLOAD.md for the exact upload path and limitations. Static preview checks: run `node scripts/serve-ui-preview.mjs`, then `node scripts/preview-browser.mjs`.
+
+## Razorpay plans
+
+Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, and `RAZORPAY_WEBHOOK_SECRET` in `.env.local` and Vercel (server secrets must not use a `NEXT_PUBLIC_` prefix). Configure a Razorpay webhook at `https://www.petzo.org/api/payments/webhook` for `payment.captured` and `order.paid`, using the same webhook secret in the server environment. Test with Razorpay Test Mode first; switch all keys and the webhook secret to Live Mode only after an end-to-end test.
+
+Plans: pairing ?399/30 days; buyer contacts ?299 for up to 8 seller contacts/30 days; individual seller ?199 for up to 8 profiles/30 days; breeder ?399 for up to 15 profiles/30 days. Captured payment activates entitlements automatically; manual UPI approval routes are retired. Marketplace listings publish immediately after the seller plan quota is checked. Seller identity is not independently verified by this automatic publication flow. Adoption remains free. Razorpay payment activation is not tied to a verified customer account yet: the current entitlement is linked to a private browser token, so phone OTP/account linking is required before production multi-device ownership.

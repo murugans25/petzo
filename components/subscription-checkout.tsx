@@ -1,45 +1,63 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
-import {CheckCircle2,Clock,Copy,ExternalLink,PawPrint,ShieldCheck,X,XCircle} from 'lucide-react';
+import {useEffect,useState} from 'react';
+import {CheckCircle2,ExternalLink,PawPrint,ShieldCheck,X} from 'lucide-react';
 
-const PRICE=399;
-const UPI_ID='vaishnavi21596-5@okicici';
-const PAYEE='Vaishnavi R';
-type PaymentStatus={status:'pending'|'approved'|'declined';expiresAt:string|null;reviewNote:string;amount:number};
+export type PlanId='pairing_monthly'|'buyer_contacts'|'seller_individual'|'seller_breeder';
+type Props={close:()=>void;planId?:PlanId};
+type OrderResult={orderId:string;amount:number;currency:'INR';keyId:string;planName:string;accessToken:string};
+type PaymentResult={status:'created'|'paid';planName:string;expiresAt:string|null;amount:number};
+type RazorpaySuccess={razorpay_order_id:string;razorpay_payment_id:string;razorpay_signature:string};
+type RazorpayOptions={key:string;amount:number;currency:string;name:string;description:string;order_id:string;prefill:{name:string;email:string;contact:string};theme:{color:string};handler:(response:RazorpaySuccess)=>void;modal:{ondismiss:()=>void}};
+declare global{interface Window{Razorpay?:new(options:RazorpayOptions)=>{open:()=>void}}}
+const PLAN_COPY:Record<PlanId,{title:string;description:string;limit?:string}>={
+ pairing_monthly:{title:'Pairing · one month',description:'Unlock owner contact for mating introductions.'},
+ buyer_contacts:{title:'Buyer contact plan',description:'Contact up to 8 pet sellers for one month.',limit:'8 seller contacts · 1 month'},
+ seller_individual:{title:'Individual seller plan',description:'Publish up to 8 pet profiles for one month.',limit:'8 pet profiles · 1 month'},
+ seller_breeder:{title:'Breeder plan',description:'Publish up to 15 pet profiles for one month.',limit:'15 pet profiles · 1 month'},
+};
 
-export default function SubscriptionCheckout({close}:{close:()=>void}){
- const [details,setDetails]=useState({name:'',email:'',phone:'',petName:'',utr:''});
- const [busy,setBusy]=useState(false),[error,setError]=useState(''),[status,setStatus]=useState<PaymentStatus|null>(null),[copied,setCopied]=useState(false);
- const [accessToken,setAccessToken]=useState('');
- const upiUri=useMemo(()=>`upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE)}&am=${PRICE}&cu=INR` ,[]);
+async function loadRazorpay(){
+ if(window.Razorpay)return;
+ await new Promise<void>((resolve,reject)=>{
+  const existing=document.querySelector<HTMLScriptElement>('script[data-razorpay-checkout]');
+  if(existing){existing.addEventListener('load',()=>resolve(),{once:true});existing.addEventListener('error',()=>reject(new Error('Could not load Razorpay Checkout.')),{once:true});return}
+  const script=document.createElement('script');script.src='https://checkout.razorpay.com/v1/checkout.js';script.async=true;script.dataset.razorpayCheckout='true';script.onload=()=>resolve();script.onerror=()=>reject(new Error('Could not load Razorpay Checkout.'));document.body.appendChild(script);
+ });
+ if(!window.Razorpay)throw new Error('Razorpay Checkout is unavailable.');
+}
 
+export default function SubscriptionCheckout({close,planId='pairing_monthly'}:Props){
+ const plan=PLAN_COPY[planId];
+ const [details,setDetails]=useState({name:'',email:'',phone:'',petName:''});
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[payment,setPayment]=useState<PaymentResult|null>(null),[accessToken,setAccessToken]=useState('');
  useEffect(()=>{const saved=window.localStorage.getItem('petzo-subscription-token');if(saved)setAccessToken(saved)},[]);
- useEffect(()=>{if(!accessToken)return;let cancelled=false;const load=async()=>{try{const response=await fetch(`/api/subscriptions?token=${encodeURIComponent(accessToken)}`,{cache:'no-store'});const data=await response.json();if(response.ok&&!cancelled)setStatus(data)}catch{}};void load();const timer=window.setInterval(()=>void load(),status?.status==='pending'?8000:30000);return()=>{cancelled=true;window.clearInterval(timer)}},[accessToken,status?.status]);
+ useEffect(()=>{if(!accessToken)return;let stopped=false;const poll=async()=>{try{const response=await fetch(`/api/payments?token=${encodeURIComponent(accessToken)}`,{cache:'no-store'});const data=await response.json();const paid=data.payments?.find((item:PaymentResult)=>item.status==='paid'&&item.planName===plan.title);if(response.ok&&paid&&!stopped)setPayment(paid)}catch{}};void poll();const interval=window.setInterval(()=>void poll(),6000);return()=>{stopped=true;window.clearInterval(interval)}},[accessToken,plan.title]);
 
- async function submit(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setError('');try{const response=await fetch('/api/subscriptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...details,amount:PRICE})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Could not send your payment request.');window.localStorage.setItem('petzo-subscription-token',data.accessToken);setAccessToken(data.accessToken);setStatus({status:'pending',expiresAt:null,reviewNote:'',amount:PRICE})}catch(e){setError(e instanceof Error?e.message:'Could not send your request.')}finally{setBusy(false)}}
- async function copyUpi(){try{await navigator.clipboard.writeText(UPI_ID);setCopied(true);window.setTimeout(()=>setCopied(false),1800)}catch{setError('Copy is not available here. You can enter the UPI ID manually.')}}
- const approved=status?.status==='approved',declined=status?.status==='declined';
- return <section className="subscription-modal" role="dialog" aria-modal="true" aria-label="Petzo Premium payment">
+ async function startPayment(event:React.FormEvent<HTMLFormElement>){
+  event.preventDefault();setBusy(true);setError('');
+  try{
+   await loadRazorpay();
+   const response=await fetch('/api/payments/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId,...details,accessToken:window.localStorage.getItem('petzo-subscription-token')||undefined})});
+   const order=await response.json() as OrderResult&{error?:string};if(!response.ok)throw new Error(order.error||'Could not start secure checkout.');
+   window.localStorage.setItem('petzo-subscription-token',order.accessToken);setAccessToken(order.accessToken);
+   const checkout=new window.Razorpay!({key:order.keyId,amount:order.amount,currency:order.currency,name:'Petzo',description:order.planName,order_id:order.orderId,prefill:{name:details.name,email:details.email,contact:details.phone},theme:{color:'#641a46'},handler:async(result)=>{
+    setBusy(true);setError('');
+    try{const verified=await fetch('/api/payments/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...result,accessToken:order.accessToken})});const outcome=await verified.json();if(verified.status===202){setError('Payment received. Razorpay is confirming capture; this page will update automatically.');return}if(!verified.ok)throw new Error(outcome.error||'Could not verify payment.');setPayment({status:'paid',planName:order.planName,amount:order.amount/100,expiresAt:outcome.expiresAt||null})}
+    catch(problem){setError(problem instanceof Error?problem.message:'Payment verification is still processing. This page will update automatically.')}
+    finally{setBusy(false)}
+   },modal:{ondismiss:()=>setBusy(false)}});
+   checkout.open();
+  }catch(problem){setError(problem instanceof Error?problem.message:'Could not start payment. Please try again.');setBusy(false)}
+ }
+ return <section className="subscription-modal" role="dialog" aria-modal="true" aria-label={`${plan.title} payment`}>
   <button className="close" aria-label="Close payment window" onClick={close}><X/></button>
-  <span className="modal-paw"><PawPrint size={28}/></span>
-  <span className="subscription-kicker">PETZO PREMIUM · ONE MONTH</span>
-  <h2>{approved?'Premium is active':declined?'Payment needs attention':'Feature your pet & connect'}</h2>
-  {approved?<div className="subscription-state approved"><CheckCircle2/><div><b>Payment verified by Petzo admin</b><p>Premium access is active until {status?.expiresAt?new Date(status.expiresAt).toLocaleDateString('en-IN'):'the end of your plan period'}.</p></div></div>:declined?<div className="subscription-state declined"><XCircle/><div><b>Request declined</b><p>{status?.reviewNote||'Please check the UTR and contact Petzo before sending another payment.'}</p></div></div>:<>
-   <p>Pay ₹399 using UPI. Your membership starts only after the admin verifies the payment in the UPI account.</p>
-   <div className="subscription-payment"><div className="subscription-qr"><img src="/payment-qr.png.jpg?v=2" alt="UPI payment QR for Petzo Premium, ₹399"/><span>Scan using any UPI app</span></div><div className="subscription-payee"><span>PAY TO</span><b>{PAYEE}</b><code>{UPI_ID}</code><strong>₹399.00</strong><button type="button" className="outline-button" onClick={()=>void copyUpi()}><Copy size={16}/>{copied?'Copied':'Copy UPI ID'}</button><a className="button" href={upiUri}>Open UPI app <ExternalLink size={16}/></a></div></div>
-   {status?.status==='pending'?<div className="subscription-state pending"><Clock/><div><b>Payment submitted · awaiting admin verification</b><p>This page checks for approval automatically. Keep this browser on this device to view your request status.</p></div></div>:<form className="subscription-form" onSubmit={submit}>
-    <h3>Already paid? Submit the transaction details.</h3>
-    <label>Your name<input required minLength={2} maxLength={100} value={details.name} onChange={e=>setDetails({...details,name:e.target.value})}/></label>
-    <div className="subscription-form-grid"><label>Email<input required type="email" maxLength={200} value={details.email} onChange={e=>setDetails({...details,email:e.target.value})}/></label><label>Phone<input required type="tel" minLength={7} maxLength={24} value={details.phone} onChange={e=>setDetails({...details,phone:e.target.value})}/></label></div>
-    <div className="subscription-form-grid"><label>Pet name<input required minLength={2} maxLength={80} value={details.petName} onChange={e=>setDetails({...details,petName:e.target.value})}/></label><label>UPI UTR / reference<input required minLength={6} maxLength={32} pattern="[A-Za-z0-9-]+" value={details.utr} onChange={e=>setDetails({...details,utr:e.target.value})} placeholder="From your payment receipt"/></label></div>
-    {error&&<div className="admin-alert error" role="alert">{error}</div>}
-    <p className="subscription-privacy"><ShieldCheck size={15}/>Contact details and UTR are private and visible only to Petzo admin for payment review.</p>
-    <button className="button full" disabled={busy}>{busy?'Submitting…':'I have paid ₹399 · Submit for review'}</button>
-    <small className="subscription-disclaimer">Do not submit until your UPI app confirms success. A submitted UTR is not proof of payment by itself.</small>
-   </form>}
-   {error&&status?.status==='pending'&&<div className="admin-alert error" role="alert">{error}</div>}
+  <span className="modal-paw"><PawPrint size={28}/></span><span className="subscription-kicker">PETZO · SECURE CHECKOUT</span>
+  <h2>{payment?'Your plan is active':plan.title}</h2>
+  {payment?<div className="subscription-state approved"><CheckCircle2/><div><b>Payment verified automatically</b><p>{payment.planName} is active until {payment.expiresAt?new Date(payment.expiresAt).toLocaleDateString('en-IN'):'your plan expires'}.</p></div></div>:<>
+   <p>{plan.description} Free browsing and adoption stay available to everyone.</p>
+   <div className="subscription-payment"><div className="subscription-qr"><span className="modal-paw"><ShieldCheck size={30}/></span><b>Razorpay secure checkout</b><span>UPI, cards and supported payment methods</span></div><div className="subscription-payee"><span>PLAN PRICE</span><b>{plan.title}</b>{plan.limit&&<code>{plan.limit}</code>}<strong>₹{planId==='pairing_monthly'||planId==='seller_breeder'?399:planId==='buyer_contacts'?299:199}.00</strong><span>Plan activates after Razorpay confirms payment.</span></div></div>
+   <form className="subscription-form" onSubmit={startPayment}><label>Your name<input required minLength={2} maxLength={100} autoComplete="name" value={details.name} onChange={e=>setDetails({...details,name:e.target.value})}/></label><div className="subscription-form-grid"><label>Email<input required type="email" maxLength={200} autoComplete="email" value={details.email} onChange={e=>setDetails({...details,email:e.target.value})}/></label><label>Phone<input required type="tel" minLength={7} maxLength={24} autoComplete="tel" value={details.phone} onChange={e=>setDetails({...details,phone:e.target.value})}/></label></div>{planId==='pairing_monthly'&&<label>Pet name<input required minLength={2} maxLength={80} value={details.petName} onChange={e=>setDetails({...details,petName:e.target.value})}/></label>}{error&&<div className="admin-alert error" role="alert">{error}</div>}<p className="subscription-privacy"><ShieldCheck size={15}/>Payment is confirmed by Razorpay server verification/webhook. Petzo admin approval is not required.</p><button className="button full" disabled={busy}>{busy?'Opening secure checkout…':`Pay securely · ₹${planId==='pairing_monthly'||planId==='seller_breeder'?399:planId==='buyer_contacts'?299:199}`} <ExternalLink size={16}/></button><small className="subscription-disclaimer">Do not close this page until checkout finishes. If your bank confirms payment but this page is still processing, it will update when Razorpay sends its confirmation.</small></form>
   </>}
-  {approved&&<button className="button full subscription-done" onClick={close}>Continue browsing</button>}
-  <button className="subscription-free-note" onClick={close}>Browsing and adoption remain free</button>
+  {payment&&<button className="button full subscription-done" onClick={close}>Continue</button>}<button className="subscription-free-note" onClick={close}>Browsing and adoption remain free</button>
  </section>
 }

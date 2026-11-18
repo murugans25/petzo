@@ -25,7 +25,7 @@ export default function PetIntake({close}:{close:()=>void}){
  const validate=()=>{const all:Record<string,string>={};const parsed=basic.safeParse(data);if(!parsed.success)for(const issue of parsed.error.issues)all[String(issue.path[0])]=issue.message;
  if(data.ageMode==='dob'&&!ageFromBirthDate(data.dob))all.dob='Choose a valid past date of birth.';
  const total=Number(data.ageYears)*12+Number(data.ageMonths);if(!Number.isInteger(Number(data.ageYears))||!Number.isInteger(Number(data.ageMonths))||Number(data.ageMonths)<0||Number(data.ageMonths)>11||total<1||total>480)all.age='Enter age in years and months (1 month to 40 years).';
- if(!photos.length||photos.some(p=>!p.title.trim()))all.photos='Add a profile photo and a title for every photo.';
+ if(photos.length<3||photos.some(p=>!p.title.trim()))all.photos='Add at least 3 pet photos and a title for each photo.';
  if(!prefs.petTypes.length||!prefs.lookingFor.length||(!prefs.anywhere&&prefs.originCity.trim().length<2))all.preferences='Choose pet types, a purpose, and your city or Find anywhere.';
  const keys=step===0?['owner','email','city']:step===1?['name','breed','dob','age','weight','description','photos']:step===2?['health','preferences']:Object.keys(all);const relevant=Object.fromEntries(Object.entries(all).filter(([key])=>keys.includes(key)));
  if(step===3&&(!data.consent||!data.confirmation))relevant.consent='Accept both confirmations to continue.';setErrors(relevant);return !Object.keys(relevant).length};

@@ -16,8 +16,10 @@ export async function POST(request:NextRequest){
   const bytes=Buffer.from(body.signature||'','base64');if(!signatureMatches(type,bytes))return NextResponse.json({error:'The selected file does not match its file type.'},{status:400});
   const base=process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,'');const secret=process.env.SUPABASE_SECRET_KEY;if(!base||!secret)return NextResponse.json({error:'Supabase Storage is not configured.'},{status:503});
   const bucket=document?'petzo-private-documents':'petzo-media';const key=document?`${randomUUID()}.${extension}`:`pets/${randomUUID()}.${extension}`;const encoded=key.split('/').map(encodeURIComponent).join('/');
-  const response=await fetch(`${base}/storage/v1/object/upload/sign/${bucket}/${encoded}`,{method:'POST',headers:{apikey:secret,Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},body:JSON.stringify({upsert:false})});
-  const result=await response.json();if(!response.ok)throw Error(`Could not create secure upload ticket (${response.status}).`);
+  const storageHeaders:Record<string,string>={apikey:secret,'Content-Type':'application/json'};if(!secret.startsWith('sb_secret_'))storageHeaders.Authorization=`Bearer ${secret}`;
+  const response=await fetch(`${base}/storage/v1/object/upload/sign/${bucket}/${encoded}`,{method:'POST',headers:storageHeaders,body:JSON.stringify({upsert:false})});
+  const raw=await response.text();let result:Record<string,unknown>={};try{result=JSON.parse(raw)}catch{}
+  if(!response.ok){const detail=String(result.message||result.error||result.statusCode||raw||'Unknown Storage error').replace(/[\r\n]+/g,' ').slice(0,180);return NextResponse.json({error:`Supabase Storage rejected the upload (${response.status}): ${detail}`},{status:502})}
   const signed=String(result.signedURL||result.url||'');if(!signed)throw Error('Storage did not return an upload ticket.');
   const uploadUrl=signed.startsWith('http')?signed:`${base}/storage/v1${signed.startsWith('/')?signed:`/${signed}`}`;
   const publicUrl=document?undefined:`${base}/storage/v1/object/public/${bucket}/${encoded}`;

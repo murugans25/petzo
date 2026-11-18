@@ -26,3 +26,5 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-bottom:1
 /* Mobile saved-pets shortcut lives in the header; keep the bottom bar focused on primary destinations. */
 @media(max-width:640px){.mobile-bottom-nav{justify-content:space-evenly;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}.mobile-bottom-nav button{flex:1;min-width:0;max-width:120px;min-height:54px;font-size:10px}.mobile-bottom-nav button.current{color:#641a46}.mobile-bottom-nav button.current svg{fill:#f2e2eb}}
 @media(max-width:360px){header{padding-left:10px;padding-right:10px}.header-actions{gap:3px}.header-actions .saved-button,.header-actions>.small,.mobile-toggle{width:40px;min-width:40px;height:42px}.header-actions .saved-button{height:40px}.header-actions>.small{font-size:0;padding:0}.mobile-bottom-nav button{font-size:9px}}
+
+.intake-validation-notice{margin:12px 0 0;padding:12px 14px;border:1px solid #e6b0a5;border-radius:10px;background:#fff3f0;color:#8e352d;font-size:13px;line-height:1.5}.intake-validation-notice[hidden]{display:none}

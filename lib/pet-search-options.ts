@@ -8,3 +8,21 @@ export const indianCities:CityOption[]=[
 ];
 export function citySuggestions(value:string){const query=value.trim().toLocaleLowerCase();if(!query)return indianCities.slice(0,8);return indianCities.filter(city=>city.name.toLocaleLowerCase().includes(query)||(city.aliases||[]).some(alias=>alias.toLocaleLowerCase().includes(query))).slice(0,8)}
 export function canonicalCity(value:string){const query=value.trim().toLocaleLowerCase();const found=indianCities.find(city=>city.name.toLocaleLowerCase()===query||(city.aliases||[]).some(alias=>alias.toLocaleLowerCase()===query));return found?.name||value.trim()}
+
+// Curated neighbourhood suggestions. Users can add any locality that is not listed.
+const cityAreas:Record<string,string[]>={
+ Chennai:['Adyar','Anna Nagar','Ashok Nagar','Avadi','Besant Nagar','Chromepet','Egmore','Guindy','Kelambakkam','Kilpauk','Kodambakkam','Kolathur','Madhavaram','Medavakkam','Mylapore','Navalur','Nungambakkam','Pallavaram','Perambur','Perungudi','Porur','Sholinganallur','Tambaram','T. Nagar','Thiruvanmiyur','Velachery'],
+ Bengaluru:['Banashankari','Basavanagudi','Bellandur','Electronic City','HSR Layout','Indiranagar','Jayanagar','JP Nagar','Koramangala','Malleshwaram','Marathahalli','Whitefield'],
+ Hyderabad:['Ameerpet','Gachibowli','HITEC City','Jubilee Hills','Kondapur','Kukatpally','Madhapur','Miyapur','Secunderabad'],
+ Mumbai:['Andheri','Bandra','Borivali','Chembur','Dadar','Goregaon','Juhu','Powai','Thane'],
+ Delhi:['Dwarka','Hauz Khas','Karol Bagh','Lajpat Nagar','Mayur Vihar','Rohini','Saket','Vasant Kunj'],
+ Coimbatore:['Gandhipuram','Peelamedu','RS Puram','Saibaba Colony','Saravanampatti','Singanallur','Town Hall'],
+ Madurai:['Anna Nagar','Goripalayam','KK Nagar','Simmakkal','Tallakulam','Thirunagar'],
+ Puducherry:['Ariyankuppam','Lawspet','Muthialpet','Rainbow Nagar','White Town'],
+ Kochi:['Aluva','Edappally','Fort Kochi','Kakkanad','Kalamassery','Thrippunithura'],
+ Pune:['Aundh','Baner','Hadapsar','Hinjawadi','Kothrud','Viman Nagar'],
+ Kolkata:['Ballygunge','Dum Dum','Howrah','New Town','Salt Lake'],
+ Ahmedabad:['Bodakdev','Maninagar','Navrangpura','Satellite','Thaltej'],
+ Visakhapatnam:['Dwaraka Nagar','Gajuwaka','Madhurawada','MVP Colony','Seethammadhara']
+};
+export function areasForCity(city:string){const canonical=canonicalCity(city);return cityAreas[canonical]||[]}

@@ -59,7 +59,8 @@ export async function GET(request: NextRequest) {
     if (!profile) return errorResponse('No breeder profile is linked to this private access.', 404);
 
     const activePlans = entitlements.map(row => row.data).filter(item => item.planId === 'seller_breeder' && item.kind === 'seller_profiles' && item.status === 'active' && typeof item.expiresAt === 'string' && Date.parse(item.expiresAt) > Date.now());
-    const petListings = listings.map(row => row.data);
+    const now = Date.now();
+    const petListings = listings.map(row => row.data).filter(listing => !listing.planExpiresAt || Date.parse(listing.planExpiresAt) > now);
     const inquiries = (await Promise.all(petListings.map(async listing => {
       const rows = await listRecords<PetMarketEnquiry>('pet_market_enquiries', { listingId: listing.id, ascending: false });
       return rows.map(row => ({ ...row.data, petName: listing.petName, listingId: listing.id }));

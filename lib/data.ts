@@ -1,4 +1,4 @@
-﻿export type Pet = {id:number;name:string;breed:string;type:string;gender:string;age:string;location:string;image:string;color:string};
+export type Pet = {id:number;name:string;breed:string;type:string;gender:string;age:string;location:string;areas?:string[];image:string;color:string};
 export const pets:Pet[]=[
 {id:1,name:'Cooper',breed:'Golden Retriever',type:'Dog',gender:'Male',age:'2.5 years',location:'Bengaluru',image:'photo-1633722715463-d30f4f325e24',color:'#ece6da'},
 {id:2,name:'Luna',breed:'British Shorthair',type:'Cat',gender:'Female',age:'2 years',location:'Chennai',image:'photo-1573865526739-10659fec78a5',color:'#efe9e3'},

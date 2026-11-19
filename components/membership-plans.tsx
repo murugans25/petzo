@@ -1,10 +1,53 @@
 'use client';
-import {ArrowRight,Check} from 'lucide-react';
-type PlanId='pairing_monthly'|'buyer_contacts'|'seller_individual'|'seller_breeder';
-const paidPlans:{id:PlanId;name:string;price:number;eyebrow:string;description:string;features:string[]}[]=[
- {id:'pairing_monthly',name:'Pairing',price:399,eyebrow:'FOR MATING CONNECTIONS',description:'Browse matches for free. Pay only when you want to contact an owner.',features:['1 month access','Contact pet owners for mating','Browse profiles free']},
- {id:'buyer_contacts',name:'Buyer contacts',price:199,eyebrow:'FOR PET BUYERS',description:'Shortlist pets and reach out to sellers directly.',features:['Up to 8 seller contacts','1 month validity','Browse listings free']},
- {id:'seller_individual',name:'Individual seller',price:199,eyebrow:'FOR INDIVIDUAL OWNERS',description:'List your pets for sale with one simple monthly plan.',features:['Up to 8 pet profiles','1 month validity','At least 3 photos per pet']},
- {id:'seller_breeder',name:'Breeder',price:399,eyebrow:'FOR BREEDERS',description:'Manage a larger set of pet listings for one month.',features:['Up to 15 pet profiles','1 month validity','At least 3 photos per pet']},
-];
-export default function MembershipPlans({select,adopt,browse}:{plans?:unknown[];select:(planId:PlanId)=>void;adopt:()=>void;browse:()=>void}){return <section className="section plans"><div className="eyebrow">CLEAR PRICING · THOUGHTFUL CONNECTIONS</div><h1>Browse freely. Choose a plan when you connect.</h1><p>Account registration, pet profiles, matching and marketplace browsing are free. Choose a paid plan only for the contacts or listing capacity you need.</p><article className="plan free-plan"><span>FREE COMMUNITY ACCESS</span><h2>Free</h2><h3>₹0 <small>always</small></h3><p>Get started and explore Petzo without paying.</p><ul>{['Create an account','Add a pet profile and browse matches','Browse Buy & Sell listings','Adoption listings and requests'].map(item=><li key={item}><Check size={17}/>{item}</li>)}</ul><button className="outline-button" onClick={browse}>Browse pets for free <ArrowRight size={17}/></button></article><div className="plan-grid">{paidPlans.map(plan=><article className="plan premium" key={plan.id}><span>{plan.eyebrow}</span><h2>{plan.name}</h2><h3>₹{plan.price}<small> / 1 month</small></h3><p>{plan.description}</p><ul>{plan.features.map(feature=><li key={feature}><Check size={17}/>{feature}</li>)}</ul><button className="button" onClick={()=>select(plan.id)}>Continue to payment <ArrowRight size={17}/></button></article>)}</div><div className="adoption-plans-note"><div><b>Adoption stays free.</b><p>Browse available pets and send adoption requests at no cost. No subscription is required at any step.</p></div><button className="outline-button" onClick={adopt}>Explore adoption <ArrowRight size={16}/></button></div><p className="plans-payment-note">Razorpay confirms successful payments automatically. Plans activate after payment capture; no manual Petzo payment approval is needed. Premium breeding at ₹799/month is planned for a later release.</p></section>}
+
+import { ArrowRight, Check } from 'lucide-react';
+import { BUSINESS_PLANS } from '../lib/business-plans';
+import type { PlanId } from './subscription-checkout';
+
+type Props = {
+  select: (planId: PlanId) => void;
+  adopt: () => void;
+  browse: () => void;
+};
+
+export default function MembershipPlans({ select, adopt, browse }: Props) {
+  return (
+    <section className="section plans">
+      <div className="eyebrow">CLEAR PRICING · THOUGHTFUL CONNECTIONS</div>
+      <h1>Browse freely. Choose a plan when you connect.</h1>
+      <p>Creating an account, adding a pet profile, browsing matches and viewing Buy & Sell listings are free. Pay only when you need contact access or seller listing capacity.</p>
+
+      <article className="plan free-plan">
+        <span>FREE COMMUNITY ACCESS</span>
+        <h2>Free</h2>
+        <h3>₹0 <small>always</small></h3>
+        <p>Get started and explore Petzo without paying.</p>
+        <ul>
+          {['Create an account and pet profile', 'Browse matching profiles', 'Browse Buy & Sell listings', 'Adoption listings and requests'].map((item) => (
+            <li key={item}><Check size={17} />{item}</li>
+          ))}
+        </ul>
+        <button className="outline-button" onClick={browse}>Browse pets for free <ArrowRight size={17} /></button>
+      </article>
+
+      <div className="plan-grid">
+        {BUSINESS_PLANS.map((plan) => (
+          <article className="plan premium" key={plan.id}>
+            <span>{plan.name === 'Breeder listings' ? 'FOR BREEDERS' : plan.name === 'Individual seller' ? 'FOR INDIVIDUAL OWNERS' : plan.name === 'Buyer contacts' ? 'FOR PET BUYERS' : 'FOR MATING CONNECTIONS'}</span>
+            <h2>{plan.name}</h2>
+            <h3>₹{plan.price.toLocaleString('en-IN')}<small> / {plan.months} month</small></h3>
+            <p>{plan.description}</p>
+            <ul>{plan.features.map((feature) => <li key={feature}><Check size={17} />{feature}</li>)}</ul>
+            <button className="button" onClick={() => select(plan.paymentPlanId!)}>Continue to payment <ArrowRight size={17} /></button>
+          </article>
+        ))}
+      </div>
+
+      <div className="adoption-plans-note">
+        <div><b>Adoption stays free.</b><p>Browse available pets and send adoption requests at no cost. No subscription is required at any step.</p></div>
+        <button className="outline-button" onClick={adopt}>Explore adoption <ArrowRight size={16} /></button>
+      </div>
+      <p className="plans-payment-note">Razorpay confirms successful payments and activates eligible access automatically. Petzo does not charge for adoption.</p>
+    </section>
+  );
+}

@@ -6,7 +6,7 @@ export type PetMarketListing={
  price:number;currency:'INR';description:string;vaccination:string;health:string;vetClinic:string;
  photos:string[];photoTitles:string[];sellerKind:'individual'|'breeder'|'organization';sellerName:string;sellerEmail:string;sellerPhone:string;
  establishmentName:string;registrationNumber:string;registrationDocument:PrivateMarketDocument|null;vetDocument:PrivateMarketDocument|null;
- sellerVerified:boolean;status:PetMarketStatus;createdAt:string;updatedAt:string;sample?:boolean;
+ sellerVerified:boolean;status:PetMarketStatus;createdAt:string;updatedAt:string;planExpiresAt?:string;sample?:boolean;
 };
 export type PetMarketEnquiry={
  id:number;listingId:number;buyerName:string;buyerEmail:string;buyerPhone:string;message:string;status:PetMarketEnquiryStatus;createdAt:string;

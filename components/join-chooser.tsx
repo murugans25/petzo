@@ -16,7 +16,7 @@ export default function JoinChooser({ close, joinOwner, joinBreeder }: { close: 
           <button className="join-owner-button" onClick={joinOwner}>Join Free <ArrowRight size={17}/></button>
         </article>
         <article className="join-card breeder-choice">
-          <div className="join-card-photo"><img src="/pets/photo-1552053831-71594a27632d.jpg" alt="A dog ready to meet its next family"/></div>
+          <div className="join-card-photo"><img src="/breeder-litter.png" alt="A responsible breeder caring for a litter of puppies"/></div>
           <h2>Breeder</h2><p>Manage your breeding business and pet profiles</p>
           <button className="join-breeder-button" onClick={joinBreeder}><Store size={17}/> Join as Breeder <ArrowRight size={17}/></button>
         </article>

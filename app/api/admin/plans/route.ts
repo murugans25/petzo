@@ -1,10 +1,22 @@
-import {NextRequest,NextResponse} from 'next/server';
-import {guard} from '../../../../lib/server/admin-auth';
-import {allPlans,audit} from '../../../../lib/server/database';
-import {deleteRecord,getRecordById,insertRecord,listRecords,updateRecord} from '../../../../lib/server/supabase-data';
-import {planSchema} from '../../../../lib/server/validation';
-export const dynamic='force-dynamic';
-export async function GET(request:NextRequest){const blocked=await guard(request);if(blocked)return blocked;try{return NextResponse.json({plans:await allPlans()},{headers:{'Cache-Control':'no-store'}})}catch{return NextResponse.json({error:'Unable to load plans.'},{status:500})}}
-export async function POST(request:NextRequest){const blocked=await guard(request);if(blocked)return blocked;try{const parsed=planSchema.safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:parsed.error.issues.map(i=>i.message).join('; ')},{status:400});const id=await insertRecord('plans',parsed.data);const plan=(await getRecordById('plans',id))?.data;if(!plan)return NextResponse.json({error:'Unable to create plan.'},{status:500});await audit(`Created plan: ${plan.name}`);return NextResponse.json({plan},{status:201})}catch{return NextResponse.json({error:'Unable to create plan.'},{status:500})}}
-export async function PUT(request:NextRequest){const blocked=await guard(request);if(blocked)return blocked;try{const {id,...data}=await request.json();if(!Number.isSafeInteger(id)||id<1)return NextResponse.json({error:'Invalid plan ID.'},{status:400});const parsed=planSchema.safeParse(data);if(!parsed.success)return NextResponse.json({error:parsed.error.issues.map(i=>i.message).join('; ')},{status:400});const row=await getRecordById('plans',id);if(!row)return NextResponse.json({error:'Plan not found.'},{status:404});const plan={...parsed.data,id};await updateRecord(row.row_id,plan);await audit(`Updated plan: ${plan.name}`);return NextResponse.json({plan})}catch{return NextResponse.json({error:'Unable to update plan.'},{status:500})}}
-export async function DELETE(request:NextRequest){const blocked=await guard(request);if(blocked)return blocked;try{const {id}=await request.json();if(!Number.isSafeInteger(id)||id<1)return NextResponse.json({error:'Invalid plan ID.'},{status:400});const row=await getRecordById<any>('plans',id);if(!row)return NextResponse.json({error:'Plan not found.'},{status:404});await deleteRecord('plans',row.row_id);await audit(`Deleted subscription plan #${id}: ${row.data.name}`);return NextResponse.json({ok:true})}catch{return NextResponse.json({error:'Unable to delete plan.'},{status:500})}}
+import { NextRequest, NextResponse } from 'next/server';
+import { guard } from '../../../../lib/server/admin-auth';
+import { BUSINESS_PLANS } from '../../../../lib/business-plans';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
+  const blocked = await guard(request);
+  if (blocked) return blocked;
+  return NextResponse.json({ plans: BUSINESS_PLANS }, { headers: { 'Cache-Control': 'no-store' } });
+}
+
+function fixedPricingResponse() {
+  return NextResponse.json(
+    { error: 'Pricing is managed in the application and cannot be changed in admin.' },
+    { status: 405, headers: { Allow: 'GET', 'Cache-Control': 'no-store' } },
+  );
+}
+
+export async function POST() { return fixedPricingResponse(); }
+export async function PUT() { return fixedPricingResponse(); }
+export async function DELETE() { return fixedPricingResponse(); }

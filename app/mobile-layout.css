@@ -1,9 +1,9 @@
 /* Mobile header and search controls: preserve the full brand while keeping every action in the viewport. */
-@media(max-width:1060px){header{gap:14px;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}.header-actions{gap:10px}.public-site header nav{display:none}.public-site header .mobile-toggle{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:#f7f1f4;color:#641a46}.public-site header nav.open{display:flex;position:absolute;top:calc(100% - 1px);left:0;right:0;z-index:70;height:auto;flex-direction:column;gap:3px;padding:12px 20px;background:#fff;box-shadow:0 16px 30px #30172b16}.public-site header nav.open button{width:100%;min-height:46px;text-align:left;font-size:14px}}
+@media(max-width:1200px){header{gap:14px;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}.header-actions{gap:10px}.public-site header nav{display:none}.public-site header .mobile-toggle{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:#f7f1f4;color:#641a46}.public-site header nav.open{display:flex;position:absolute;top:calc(100% - 1px);left:0;right:0;z-index:70;height:auto;flex-direction:column;gap:3px;padding:12px 20px;background:#fff;box-shadow:0 16px 30px #30172b16}.public-site header nav.open button{width:100%;min-height:46px;text-align:left;font-size:14px}}
 @media(max-width:640px){.public-site header{height:76px;max-width:none;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));gap:7px;justify-content:space-between}.public-site header>.logo{flex:0 1 auto;min-width:0;overflow:visible}.public-site header>.logo .petzo-brand{min-width:0;gap:7px}.public-site header>.logo .petzo-brand-image{width:43px;height:43px;min-width:43px}.public-site header>.logo .petzo-wordmark{font-size:27px;line-height:1;letter-spacing:-.8px}.public-site header>.logo .petzo-tagline{max-width:112px;white-space:nowrap;font-size:5px;letter-spacing:.35px}.public-site header .header-actions{display:flex;flex:0 0 auto;align-items:center;gap:4px;min-width:0}.public-site header .admin-access,.public-site header .saved-button,.public-site header .mobile-toggle{display:grid;place-items:center;flex:0 0 38px;width:38px;height:40px;min-width:38px;padding:0;border:1px solid #eadce4;border-radius:50%;background:#fff;color:#641a46}.public-site header .admin-access svg,.public-site header .saved-button svg,.public-site header .mobile-toggle svg{width:19px;height:19px}.public-site header nav.open{top:calc(100% - 1px)}.mobile-favourite-count{font-size:9px!important;line-height:15px!important;color:white!important}.pet-search-panel{padding:22px 16px!important;border-radius:16px!important}.pet-search-top{align-items:flex-start;gap:10px}.pet-search-top h2{font-size:22px;line-height:1.35}.pet-search-top .search-side-note{display:none}.pet-type-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pet-type-option{min-width:0;min-height:105px;padding:8px 5px}.pet-type-option img{width:43px;height:43px}.pet-type-option>b,.pet-type-option span b{font-size:11px;line-height:1.3}.pet-type-option small{font-size:9px;line-height:1.35}.pet-search-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:11px!important;margin-top:16px}.pet-search-fields>*{width:100%;min-width:0;max-width:100%}.pet-search-fields .search-input-box{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;gap:9px;min-height:0;padding:12px;border:1px solid #e8dfe4;border-radius:10px;background:#fff}.pet-search-fields .search-input-box>svg{margin-top:6px;width:19px;height:19px}.pet-search-fields .search-input-box>span{display:grid;gap:6px;min-width:0}.pet-search-fields .search-input-box>span>b{font-size:12px;line-height:1.4}.pet-search-fields .search-input-box .breed-choice{gap:7px}.pet-search-fields .search-input-box .breed-choice>select,.pet-search-fields .search-input-box .breed-choice>input,.pet-search-fields .search-input-box .city-autocomplete>input,.pet-search-fields .search-input-box select{height:45px;min-height:45px;width:100%;font-size:16px}.pet-search-fields .city-validity{font-size:10px}.pet-search-submit{min-height:50px;width:100%;margin:0!important;justify-content:center;gap:10px!important;font-size:14px!important}.pet-search-note{margin:13px 0 0;font-size:11px;line-height:1.6}.favourites-feedback,.catalog-error{margin:10px 14px!important;padding:12px!important;font-size:12px!important;line-height:1.6!important}.mobile-bottom-nav{z-index:80!important}.city-suggestion-list{z-index:130}}
 @media(max-width:370px){.public-site header{padding-left:9px;padding-right:9px}.public-site header>.logo .petzo-brand-image{width:38px;height:38px;min-width:38px}.public-site header>.logo .petzo-wordmark{font-size:25px}.public-site header>.logo .petzo-tagline{font-size:4px}.public-site header .header-actions{gap:3px}.public-site header .admin-access,.public-site header .saved-button,.public-site header .mobile-toggle{flex-basis:35px;width:35px!important;min-width:35px;height:37px}.pet-search-panel{padding:18px 13px!important}}
 
-@media(max-width:1060px){.public-site header{position:relative;z-index:65}}
+@media(max-width:1200px){.public-site header{position:relative;z-index:65}}
 
 .public-site .editorial-hero,
 .public-site .pet-search-panel {
@@ -65,11 +65,26 @@
   flex: none;
 }
 
+@media (min-width: 1201px) {
+  .public-site header > .logo,
+  .public-site header > .header-actions {
+    flex-shrink: 0;
+  }
+
+  .public-site header nav {
+    gap: clamp(14px, calc(5vw - 46px), 32px);
+  }
+
+  .public-site header nav button {
+    white-space: nowrap;
+  }
+}
+
 .public-site header nav .nav-register-now {
   display: none;
 }
 
-@media (max-width: 1060px) {
+@media (max-width: 1200px) {
   .public-site header nav.open {
     left: auto;
     width: min(320px, 100%);

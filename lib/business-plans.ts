@@ -16,10 +16,10 @@ export const BUSINESS_PLANS: Plan[] = [
   {
     id: 2,
     name: 'Buyer contacts',
-    price: 199,
+    price: 1,
     months: 1,
-    description: 'Contact up to 8 pet sellers during your one-month plan.',
-    features: ['Up to 8 seller contacts', 'Valid for 1 month after payment', 'Browse Buy & Sell listings for free'],
+    description: 'Temporary ₹1 checkout test. Contact up to 8 pet sellers during your one-month plan.',
+    features: ['TEST PRICE: ₹1 temporarily', 'Up to 8 seller contacts', 'Valid for 1 month after payment', 'Browse Buy & Sell listings for free'],
     active: true,
     premium: true,
     paymentPlanId: 'buyer_contacts',

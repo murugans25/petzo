@@ -5,3 +5,10 @@
 .discovery-location-filter{display:grid;gap:8px;min-width:0}.discovery-location-filter>input{width:100%}@media(max-width:640px){.area-options{grid-template-columns:1fr 1fr}.search-input-box .area-picker-label{font-size:10px}.discovery-location-filter{grid-column:1/-1}}
 
 .search-location-box{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start}.search-location-box>svg{margin-top:6px}.search-location-box>.area-picker{grid-column:2}.search-location-box>span{min-width:0}
+
+/* Keep locality choices compact and readable inside the discovery filters. */
+.filter-panel .area-picker{padding:0;border:0;border-radius:0;background:transparent}
+.filter-panel .area-options label{min-height:34px;padding:6px 4px;border:0;border-bottom:1px solid #eee5e9;border-radius:0}
+.filter-panel .area-options label.selected{border-bottom-color:#9c617f;background:#fbf3f7}
+.filter-panel .area-options input[type="checkbox"]{width:15px;height:15px;min-height:15px;padding:0;flex:none}
+@media(max-width:640px){.filter-panel .area-options{grid-template-columns:1fr 1fr;gap:4px 12px}}

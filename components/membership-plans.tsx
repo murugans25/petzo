@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowRight, Check, Clock3, PawPrint } from 'lucide-react';
-import type { Plan } from '../lib/catalog-types';
+import type { PaymentPlanId, Plan } from '../lib/catalog-types';
 import type { PlanId } from './subscription-checkout';
 
 type Props = {
@@ -11,21 +11,12 @@ type Props = {
   browse: () => void;
 };
 
-const checkoutPlans: Record<PlanId, { expectedPrice: number; purpose: string }> = {
-  pairing_monthly: { expectedPrice: 399, purpose: 'pairing' },
-  buyer_contacts: { expectedPrice: 199, purpose: 'buyer' },
-  seller_individual: { expectedPrice: 199, purpose: 'individual seller' },
-  seller_breeder: { expectedPrice: 399, purpose: 'breeder' },
+const checkoutPlans: Record<PaymentPlanId, { expectedPrice: number }> = {
+  pairing_monthly: { expectedPrice: 399 },
+  buyer_contacts: { expectedPrice: 199 },
+  seller_individual: { expectedPrice: 199 },
+  seller_breeder: { expectedPrice: 399 },
 };
-
-function checkoutPlanFor(plan: Plan): PlanId | null {
-  const text = `${plan.name} ${plan.description} ${plan.features.join(' ')}`.toLowerCase();
-  if (text.includes('breeder') || text.includes('15 pet')) return 'seller_breeder';
-  if (text.includes('individual seller') || text.includes('8 pet profile')) return 'seller_individual';
-  if (text.includes('buyer') || text.includes('seller contact')) return 'buyer_contacts';
-  if (text.includes('pair') || text.includes('mat') || text.includes('owner contact')) return 'pairing_monthly';
-  return null;
-}
 
 export default function MembershipPlans({ plans = [], select, adopt, browse }: Props) {
   // `active` is the admin's explicit “Visible on user website” switch.
@@ -53,7 +44,7 @@ export default function MembershipPlans({ plans = [], select, adopt, browse }: P
       {visiblePlans.length > 0 ? (
         <div className="plan-grid">
           {visiblePlans.map((plan) => {
-            const checkoutId = checkoutPlanFor(plan);
+            const checkoutId = plan.paymentPlanId;
             const checkout = checkoutId ? checkoutPlans[checkoutId] : null;
             const paymentReady = Boolean(checkout && checkout.expectedPrice === plan.price && plan.months === 1);
 

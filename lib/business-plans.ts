@@ -19,7 +19,7 @@ export const BUSINESS_PLANS: Plan[] = [
     price: 199,
     months: 1,
     description: 'Contact up to 8 pet sellers during your one-month plan.',
-    features: ['Up to 8 seller contacts', 'Valid for 1 month after payment', 'Browse Buy & Sell listings for free'],
+    features: ['Up to 8 seller contacts', 'Valid for 1 month after payment', 'Browse Buy a pet listings for free'],
     active: true,
     premium: true,
     paymentPlanId: 'buyer_contacts',
@@ -38,7 +38,7 @@ export const BUSINESS_PLANS: Plan[] = [
   {
     id: 4,
     name: 'Breeder listings',
-    price: 399,
+    price: 299,
     months: 1,
     description: 'Manage up to 15 pet profiles for sale for one month.',
     features: ['Up to 15 pet profiles', 'One pet per profile', 'At least 3 photos per pet', 'Valid for 1 month after payment'],

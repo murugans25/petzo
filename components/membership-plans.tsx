@@ -15,7 +15,7 @@ export default function MembershipPlans({ select, adopt, browse }: Props) {
     <section className="section plans">
       <div className="eyebrow">CLEAR PRICING · THOUGHTFUL CONNECTIONS</div>
       <h1>Browse freely. Choose a plan when you connect.</h1>
-      <p>Creating an account, adding a pet profile, browsing matches and viewing Buy & Sell listings are free. Pay only when you need contact access or seller listing capacity.</p>
+      <p>Creating an account, adding a pet profile, browsing matches and viewing Buy a pet listings are free. Pay only when you need contact access or seller listing capacity.</p>
 
       <article className="plan free-plan">
         <span>FREE COMMUNITY ACCESS</span>
@@ -23,7 +23,7 @@ export default function MembershipPlans({ select, adopt, browse }: Props) {
         <h3>₹0 <small>always</small></h3>
         <p>Get started and explore Petzo without paying.</p>
         <ul>
-          {['Create an account and pet profile', 'Browse matching profiles', 'Browse Buy & Sell listings', 'Adoption listings and requests'].map((item) => (
+          {['Create an account and pet profile', 'Browse matching profiles', 'Browse Buy a pet listings', 'Adoption listings and requests'].map((item) => (
             <li key={item}><Check size={17} />{item}</li>
           ))}
         </ul>

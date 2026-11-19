@@ -4,7 +4,7 @@ export const PETZO_PLANS={
  pairing_monthly:{name:'Unlimited owner contacts - 30 days',amount:399,kind:'pairing',durationDays:30},
  buyer_contacts:{name:'Buyer · 8 seller contacts',amount:199,kind:'buyer_contacts',durationDays:30,contactLimit:8},
  seller_individual:{name:'Individual seller · 8 pet profiles',amount:199,kind:'seller_profiles',durationDays:30,profileLimit:8},
- seller_breeder:{name:'Breeder · 15 pet profiles',amount:399,kind:'seller_profiles',durationDays:30,profileLimit:15},
+ seller_breeder:{name:'Breeder · 15 pet profiles',amount:299,kind:'seller_profiles',durationDays:30,profileLimit:15},
 } as const;
 export type PetzoPlanId=keyof typeof PETZO_PLANS;
 

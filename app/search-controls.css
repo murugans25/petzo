@@ -12,3 +12,10 @@
 .filter-panel .area-options label.selected{border-bottom-color:#9c617f;background:#fbf3f7}
 .filter-panel .area-options input[type="checkbox"]{width:15px;height:15px;min-height:15px;padding:0;flex:none}
 @media(max-width:640px){.filter-panel .area-options{grid-template-columns:1fr 1fr;gap:4px 12px}}
+
+/* Discovery filter order: pet type, name or breed, gender, then location. */
+.discovery .filter-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+.discovery .filter-panel>input,.discovery .filter-panel>select,.discovery .filter-panel>.discovery-location-filter{width:100%;min-width:0}
+.discovery .filter-panel>input,.discovery .filter-panel>select{min-height:48px}
+@media(max-width:900px){.discovery .filter-panel{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.discovery .filter-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.discovery .filter-panel>.discovery-location-filter{grid-column:1/-1}.discovery .filter-panel>input,.discovery .filter-panel>select{font-size:16px;padding:11px 12px}}

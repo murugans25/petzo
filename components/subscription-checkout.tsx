@@ -39,7 +39,7 @@ export default function SubscriptionCheckout({close,planId='pairing_monthly'}:Pr
   event.preventDefault();setBusy(true);setError('');
   try{
    await loadRazorpay();
-   const response=await fetch('/api/payments/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId,...details,accessToken:window.localStorage.getItem('petzo-subscription-token')||undefined})});
+   const response=await fetch('/api/payments/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId,name:details.name,email:details.email,phone:details.phone,...(planId==='pairing_monthly'?{petName:details.petName}:{}),accessToken:window.localStorage.getItem('petzo-subscription-token')||undefined})});
    const order=await response.json() as OrderResult&{error?:string};if(!response.ok)throw new Error(order.error||'Could not start secure checkout.');
    window.localStorage.setItem('petzo-subscription-token',order.accessToken);setAccessToken(order.accessToken);
    const checkout=new window.Razorpay!({key:order.keyId,amount:order.amount,currency:order.currency,name:'Petzo',description:order.planName,order_id:order.orderId,prefill:{name:details.name,email:details.email,contact:details.phone},theme:{color:'#641a46'},handler:async(result)=>{

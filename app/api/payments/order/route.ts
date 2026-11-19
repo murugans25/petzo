@@ -8,7 +8,7 @@ import {hashPaymentToken,type PaymentRecord} from '../../../../lib/server/paymen
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-const schema=z.object({planId:z.enum(['pairing_monthly','buyer_contacts','seller_individual','seller_breeder']),name:z.string().trim().min(2).max(100),email:z.string().trim().email().max(200),phone:z.string().trim().min(7).max(24),petName:z.string().trim().min(2).max(80).optional(),accessToken:z.string().regex(/^[A-Za-z0-9_-]{40,60}$/).optional()}).strict();
+const schema=z.object({planId:z.enum(['pairing_monthly','buyer_contacts','seller_individual','seller_breeder']),name:z.string().trim().min(2).max(100),email:z.string().trim().email().max(200),phone:z.string().trim().min(7).max(24),petName:z.string().trim().min(2).max(80).optional(),accessToken:z.string().regex(/^[A-Za-z0-9_-]{40,60}$/).optional()}).strict().superRefine((data,context)=>{if(data.planId==='pairing_monthly'&&!data.petName)context.addIssue({code:'custom',path:['petName'],message:'Enter your pet name for the mating plan.'})});
 
 export async function POST(request:NextRequest){
  if(!localEnabled())return NextResponse.json({error:'Database is not configured.'},{status:503});
